@@ -1,0 +1,73 @@
+:root {
+  --font-1: "JetBrains Mono", monospace;
+  --font-2: "Press Start 2P";
+
+  --font-size-s: 8px;
+  --font-size-m: 12px;
+  --font-size-l: 16px;
+
+  --font-400: 400;
+  --font-500: 500;
+  --font-600: 600;
+  --font-700: 700;
+
+  --background: #0b0f0b;
+  --foreground: #d4e8c2;
+
+  --card: #111911;
+  --popover: #111911;
+
+  --primary: #5a9e2f;
+  --primary-foreground: #0b0f0b;
+
+  --secondary: #1a2a1a;
+  --secondary-foreground: #a8c888;
+
+  --muted: #162016;
+  --muted-foreground: #6a8a5a;
+
+  --accent: #3bd16f;
+  --accent-foreground: #0b0f0b;
+
+  --destructive: #e05252;
+  --destructive-foreground: #ffffff;
+
+  --border: rgba(90, 158, 47, 0.18);
+  --switch-background: #2a3a2a;
+
+  --ring: #5a9e2f;
+
+  --chart-1: #3bd16f;
+  --chart-2: #5a9e2f;
+  --chart-3: #1a2a1a;
+
+  --radius: 0rem;
+  --spacing: 0.25rem;
+
+  --margin-4: 4px;
+  --margin-8: 8px;
+  --margin-16: 16px;
+  --margin-24: 24px;
+  --margin-32: 32px;
+
+  --gap-8: 8px;
+  --gap-12: 12px;
+  --gap-16: 16px;
+  --gap-24: 24px;
+
+  --padding-4: 4px;
+  --padding-8: 8px;
+  --padding-12: 12px;
+  --padding-16: 16px;
+  --padding-24: 24px;
+  --padding-32: 32px;
+
+  --sidebar: #0d130d;
+  --sidebar-foreground: #d4e8c2;
+  --sidebar-primary: #5a9e2f;
+  --sidebar-primary-foreground: #0b0f0b;
+  --sidebar-accent: #1a2a1a;
+  --sidebar-accent-foreground: #a8c888;
+  --sidebar-border: rgba(90, 158, 47, 0.18);
+  --sidebar-ring: #5a9e2f;
+}

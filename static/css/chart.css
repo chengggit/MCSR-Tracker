@@ -1,0 +1,72 @@
+.chart-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--padding-24);
+  height: auto;
+
+  h2 {
+    margin-bottom: var(--margin-8);
+  }
+  h3 {
+    font-family: var(--font-2);
+    color: var(--foreground);
+  }
+  .dropdown {
+    width: 150px;
+  }
+  .dropdown-item {
+    font-family: var(--font-1);
+  }
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+
+  .chart-label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--margin-16);
+  }
+}
+
+.ravg {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+
+  span {
+    font-size: var(--font-size-m);
+    color: var(--muted-foreground);
+  }
+}
+
+.ravg .ravg-number {
+  font-size: var(--font-size-l);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+#progress-chart {
+  max-height: 240px;
+}
+
+.activity {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr;
+  gap: var(--gap-24);
+}
+
+#activity-btn {
+  font-family: var(--font-1);
+  font-size: var(--font-size-m);
+  color: var(--foreground);
+  background: transparent;
+  border: transparent;
+  margin-bottom: var(--margin-16);
+}
+
+#activity-chart {
+  max-height: 200px;
+}

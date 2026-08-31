@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCSR Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-nav">
+        <h1>MCSR Tracker</h1>
+        <div class="dropdown-container">
+          <button id="instance-btn">
+            RSG
+            <!-- prettier-ignore -->
+            <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <section class="cards">
+        <div class="card">
+          <div class="card-icon">
+            <!-- prettier-ignore -->
+            <svg class="trophy" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 14V17M12 14C9.58104 14 7.56329 12.2822 7.10002 10M12 14C14.419 14 16.4367 12.2822 16.9 10M17 5H19.75C19.9823 5 20.0985 5 20.1951 5.01921C20.5918 5.09812 20.9019 5.40822 20.9808 5.80491C21 5.90151 21 6.01767 21 6.25C21 6.94698 21 7.29547 20.9424 7.58527C20.7056 8.77534 19.7753 9.70564 18.5853 9.94236C18.2955 10 17.947 10 17.25 10H17H16.9M7 5H4.25C4.01767 5 3.90151 5 3.80491 5.01921C3.40822 5.09812 3.09812 5.40822 3.01921 5.80491C3 5.90151 3 6.01767 3 6.25C3 6.94698 3 7.29547 3.05764 7.58527C3.29436 8.77534 4.22466 9.70564 5.41473 9.94236C5.70453 10 6.05302 10 6.75 10H7H7.10002M12 17C12.93 17 13.395 17 13.7765 17.1022C14.8117 17.3796 15.6204 18.1883 15.8978 19.2235C16 19.605 16 20.07 16 21H8C8 20.07 8 19.605 8.10222 19.2235C8.37962 18.1883 9.18827 17.3796 10.2235 17.1022C10.605 17 11.07 17 12 17ZM7.10002 10C7.03443 9.67689 7 9.34247 7 9V4.57143C7 4.03831 7 3.77176 7.09903 3.56612C7.19732 3.36201 7.36201 3.19732 7.56612 3.09903C7.77176 3 8.03831 3 8.57143 3H15.4286C15.9617 3 16.2282 3 16.4339 3.09903C16.638 3.19732 16.8027 3.36201 16.901 3.56612C17 3.77176 17 4.03831 17 4.57143V9C17 9.34247 16.9656 9.67689 16.9 10"></path> </g></svg>
+          </div>
+
+          <div class="card-label" id="pb">
+            <span class="card-title panel-title">PERSONAL BEST</span>
+            <span class="card-value"></span>
+            <span class="card-sub"></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">
+            <!-- prettier-ignore -->
+            <svg  class="lucide lucide-trending-down"  xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline><polyline points="16 17 22 17 22 11"></polyline></svg>
+          </div>
+
+          <div class="card-label" id="improvement">
+            <span class="card-title panel-title">IMPROVEMENT</span>
+            <span class="card-value"></span>
+            <span class="card-sub">since first completed run</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <!-- prettier-ignore -->
+            <svg class="tick-box" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12.5L10.5 15L16 9M7.2 20H16.8C17.9201 20 18.4802 20 18.908 19.782C19.2843 19.5903 19.5903 19.2843 19.782 18.908C20 18.4802 20 17.9201 20 16.8V7.2C20 6.0799 20 5.51984 19.782 5.09202C19.5903 4.71569 19.2843 4.40973 18.908 4.21799C18.4802 4 17.9201 4 16.8 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.07989 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.07989 20 7.2 20Z"></path> </g></svg>
+          </div>
+
+          <div class="card-label" id="total_runs">
+            <span class="card-title panel-title">TOTAL RUNS</span>
+            <span class="card-value"></span>
+            <span class="card-sub"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon">
+            <!-- prettier-ignore -->
+            <svg class="trash-can" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M14 10V17M10 10V17"></path> </g></svg>
+          </div>
+
+          <div class="card-label" id="resets">
+            <span class="card-title panel-title">RESETS</span>
+            <span class="card-value"></span>
+            <span class="card-sub">world reset</span>
+          </div>
+        </div>
+      </section>
+      <!-- Chart -->
+      <section class="performance">
+        <div class="chart-container">
+          <div class="chart-header">
+            <div class="chart-label">
+              <h2 class="chart-title panel-title">PERFORMANCE CHART</h2>
+              <h3 class="chart-sub">Any% RSG</h3>
+            </div>
+            <div class="ravg">
+              <span class="ravg-number text-accent">10.1</span>
+              <span>current rolling avg</span>
+            </div>
+          </div>
+
+          <canvas id="progress-chart"></canvas>
+        </div>
+
+        <div class="splits">
+          <h2 class="splits-title panel-title">SPLITS STATS (IGT)</h2>
+          <div class="splits-header">
+            <span>Splits</span>
+            <span>Avg</span>
+            <span>Best</span>
+          </div>
+          <div class="splits-body" id="splits-stats-body">
+            <div class="split-row" data-split="enter_nether">
+              <span>Nether Enter</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="enter_bastion">
+              <span>Bastion</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="enter_fortress">
+              <span>Fortress</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="nether_travel_blind">
+              <span>Nether Blind</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="enter_stronghold">
+              <span>Stronghold</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="enter_end">
+              <span>End Enter</span>
+              <span class="split-avg"></span>
+              <span class="split-best"></span>
+            </div>
+            <div class="split-row" data-split="completion">
+              <span>Completion</span>
+              <span class="split-avg"></span>
+              <span class="text-accent split-best"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="activity">
+        <div class="chart-container">
+          <div class="dropdown-container">
+            <button id="activity-btn" class="activity-title panel-title">
+              MONTHLY ACTIVITY
+              <!-- prettier-ignore -->
+              <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            </button>
+          </div>
+          <canvas id="activity-chart"></canvas>
+          <div class="text-footer">
+            <span class="text-muted">8888 runs this year</span>
+            <span class="text-accent">2322 completed</span>
+          </div>
+        </div>
+
+        <div class="recent-runs">
+          <h2 class="recent-runs-title panel-title">RECENT RUNS</h2>
+          <div class="recent-runs-header">
+            <span>World</span>
+            <span>Date</span>
+            <span>IGT</span>
+            <span>RTA</span>
+          </div>
+          <div class="recent-runs-body" id="recent-runs-body"></div>
+        </div>
+      </section>
+    </div>
+    <script src="script.js" type="module"></script>
+  </body>
+</html>
