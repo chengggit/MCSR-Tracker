@@ -161,6 +161,60 @@
         </div>
       </section>
     </div>
+
+    <div id="modal-container" class="modal-backdrop">
+      <div class="modal">
+        <button id="modal-close-btn">✕</button>
+
+        <div class="modal-banner">
+          <div class="modal-banner-meta">
+            <h2 id="modal-banner-run">Set Speedrun #3099</h2>
+            <span id="modal-banner-instance">RSG (1.16.1)</span>
+          </div>
+          <div class="modal-banner-time">
+            <span id="modal-banner-igt">09:32.809</span>
+            <span id="modal-banner-rta">09:55.098</span>
+          </div>
+        </div>
+
+        <div class="modal-chart">
+          <canvas id="modalChart"></canvas>
+        </div>
+
+        <div class="modal-splits-table">
+          <h2 class="modal-splits-title panel-title">SPLITS</h2>
+          <div class="modal-splits-header">
+            <span>Split</span>
+            <span>Segment</span>
+            <span>IGT</span>
+            <span>vs Avg</span>
+            <span>vs PB</span>
+          </div>
+
+          <div class="modal-splits-body">
+            <div class="modal-splits-row" data-split="enter_nether">
+              <span>Nether Enter</span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_bastion">
+              <span>Bastion</span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_fortress">
+              <span>Fortress</span>
+            </div>
+            <div class="modal-splits-row" data-split="nether_travel_blind">
+              <span>Nether Blind</span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_stronghold">
+              <span>Stronghold</span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_end">
+              <span>End Enter</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js" type="module"></script>
   </body>
 </html>

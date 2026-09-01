@@ -5,6 +5,7 @@
 @import url(./css/card.css);
 @import url(./css/chart.css);
 @import url(./css/table.css);
+@import url(./css/modal.css);
 
 * {
   margin: 0;

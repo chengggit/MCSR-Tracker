@@ -1,0 +1,97 @@
+.modal-backdrop {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  position: relative;
+  width: 720px;
+  margin-inline: auto;
+  padding-block: var(--padding-32);
+  padding-inline: var(--padding-24);
+  background: var(--background);
+}
+#modal-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.modal-banner {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--padding-24);
+  /* background: var(--card); */
+  /* border: 1px solid var(--border); */
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  font-size: var(--font-size-m);
+  margin-top: var(--margin-32);
+  margin-bottom: var(--margin-32);
+}
+
+.modal-banner-header {
+  display: flex;
+  flex-direction: column;
+}
+
+#modal-banner-run {
+  font-family: var(--font-2);
+  font-size: var(--font-size-m);
+  color: var(--foreground);
+  margin-bottom: var(--margin-8);
+}
+
+#modal-banner-meta {
+  margin-bottom: var(--margin-8);
+}
+
+.modal-banner-time {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+#modal-banner-igt {
+  font-family: var(--font-2);
+  font-size: var(--font-size-l);
+  color: var(--accent);
+  margin-bottom: var(--margin-8);
+}
+
+.modal-splits-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--padding-24);
+  height: auto;
+}
+
+.modal-splits-title {
+  margin-bottom: var(--margin-16);
+}
+
+.modal-splits-header,
+.modal-splits-row {
+  display: grid;
+  color: var(--muted-foreground);
+  font-size: var(--font-size-m);
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: var(--gap-8);
+  padding-block: var(--padding-8);
+  padding-inline: var(--padding-8);
+}
+
+.modal-splits-header {
+  border-bottom: 1px solid var(--border);
+}
