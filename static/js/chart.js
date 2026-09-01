@@ -1,34 +1,6 @@
-const primaryColor =
-  getComputedStyle(document.documentElement)
-    .getPropertyValue("--chart-1")
-    .trim() || "#3bd16f";
-
-const mutedColor =
-  getComputedStyle(document.documentElement)
-    .getPropertyValue("--chart-3")
-    .trim() || "#1e2e1e";
-
-const borderColor =
-  getComputedStyle(document.documentElement)
-    .getPropertyValue("--border")
-    .trim() || "rgba(90, 158, 47, 0.18)";
-
-const mutedFG =
-  getComputedStyle(document.documentElement)
-    .getPropertyValue("--muted-foreground")
-    .trim() || "#6a8a5a";
-
-const popover =
-  getComputedStyle(document.documentElement)
-    .getPropertyValue("--popover")
-    .trim() || "#111911";
-
 Chart.defaults.font.family = "JetBrains Mono";
-Chart.defaults.color = mutedFG;
 
-const RAData = [13, 12.3, 11.8, 11, 11.9, 10, 10.1, 11.1, 9.9, 9.6, 10.1];
-
-const hoverGridPlugin = {
+const HOVER_GRID_PLUGIN = {
   id: "hoverGrid",
   afterDraw(chart) {
     const xScale = chart.scales.x;
@@ -55,103 +27,7 @@ const hoverGridPlugin = {
   },
 };
 
-export function progressChart() {
-  const ctx = document.getElementById("progress-chart").getContext("2d");
-
-  new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      datasets: [
-        {
-          data: RAData,
-          borderColor: primaryColor,
-          borderWidth: 2,
-          pointRadius: 2,
-          pointHoverRadius: 3,
-          pointBackgroundColor: primaryColor,
-          tension: 0.2,
-          fill: true,
-          backgroundColor: function (context) {
-            const chart = context.chart;
-            const { ctx, chartArea } = chart;
-
-            if (!chartArea) {
-              return null;
-            }
-
-            const gradientHeight =
-              chartArea.top + (chartArea.bottom - chartArea.top) * 0.9;
-
-            const gradient = ctx.createLinearGradient(
-              0,
-              chartArea.top,
-              0,
-              gradientHeight,
-            );
-
-            gradient.addColorStop(0, "rgba(59, 209, 111, 0.35)");
-            gradient.addColorStop(0.6, "rgba(59, 209, 111, 0.1)");
-            gradient.addColorStop(1, "rgba(59, 209, 111, 0.0)");
-
-            return gradient;
-          },
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: "index",
-        intersect: false,
-        axis: "x",
-      },
-
-      scales: {
-        x: {
-          border: {
-            dash: [4, 4],
-          },
-          grid: {
-            color: borderColor,
-            drawTicks: false,
-            lineWidth: 0.5,
-          },
-        },
-        y: {
-          grace: "25%",
-          border: {
-            dash: [4, 4],
-          },
-          grid: {
-            color: borderColor,
-            drawTicks: false,
-            lineWidth: 0.5,
-          },
-        },
-      },
-
-      plugins: {
-        tooltip: {
-          caretSize: 0,
-          titleColor: mutedFG,
-          bodyColor: primaryColor,
-          backgroundColor: popover,
-          borderColor: borderColor,
-          borderWidth: 1,
-          cornerRadius: 0,
-        },
-        legend: {
-          display: false,
-        },
-      },
-    },
-    plugins: [hoverGridPlugin],
-  });
-}
-
-const activityHighlightPlugin = {
+const ACTIVITY_HIGHLIGHT_PLUGIN = {
   id: "activityHighlight",
   beforeDraw(chart) {
     const { ctx, chartArea } = chart;
@@ -174,6 +50,80 @@ const activityHighlightPlugin = {
     ctx.restore();
   },
 };
+
+/**
+ * Get the current CSS theme variables with fallback values.
+ * @returns {{ primary: string, muted: string, border: string, mutedFG: string, popover: string }}
+ */
+export function getThemeColors() {
+  const style = getComputedStyle(document.documentElement);
+
+  return {
+    primary: style.getPropertyValue("--chart-1").trim() || "#3bd16f",
+    muted: style.getPropertyValue("--chart-3").trim() || "#1e2e1e",
+    border:
+      style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
+    mutedFG: style.getPropertyValue("--muted-foreground").trim() || "#6a8a5a",
+    popover: style.getPropertyValue("--popover").trim() || "#111911",
+  };
+}
+
+/**
+ * Creates a background gradient for chart datasets.
+ * @param {import('chart.js').ScriptableContext<'line'>} context
+ * @param {Array<[number, string]>} colorStops - Array of tuple pairs: [offset, color]
+ * @param {number} [heightFactor=0.9] - Fraction of chart height for gradient
+ * @returns {CanvasGradient | null}
+ */
+export function createVerticalGradient(
+  context,
+  colorStops,
+  heightFactor = 0.9,
+) {
+  const chart = context.chart;
+  const { ctx, chartArea } = chart;
+
+  if (!chartArea) {
+    return null;
+  }
+
+  const gradientHeight =
+    chartArea.top + (chartArea.bottom - chartArea.top) * heightFactor;
+  const gradient = ctx.createLinearGradient(
+    0,
+    chartArea.top,
+    0,
+    gradientHeight,
+  );
+
+  for (const [offset, color] of colorStops) {
+    gradient.addColorStop(offset, color);
+  }
+
+  return gradient;
+}
+
+/**
+ * Render a line chart.
+ * @param {HTMLCanvasElement} canvasElement
+ * @param {Array<string>} labels - Array of x-axis labels
+ * @param {Array<import('chart.js').ChartDataset>} datasets - Array of dataset configurations
+ * @param {import('chart.js').ChartOptions} [options]
+ * @returns {import('chart.js').Chart}
+ * */
+export function lineChart(canvasElement, labels, datasets, options = {}) {
+  const ctx = canvasElement.getContext("2d");
+
+  return new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: datasets,
+    },
+    options: options,
+    plugins: [HOVER_GRID_PLUGIN],
+  });
+}
 
 let activityChart = null;
 
@@ -217,7 +167,7 @@ export function renderActivityChart(mode, data) {
 
   const ctx = document.getElementById("activity-chart").getContext("2d");
 
-  activityChart = new Chart(ctx, {
+  return new Chart(ctx, {
     type: "bar",
     data: {
       labels,
@@ -278,6 +228,6 @@ export function renderActivityChart(mode, data) {
         },
       },
     },
-    plugins: [activityHighlightPlugin],
+    plugins: [ACTIVITY_HIGHLIGHT_PLUGIN],
   });
 }
