@@ -1,0 +1,10 @@
+{
+  "name": "mcsr-tracker",
+  "version": "1.0.0",
+  "homepage": "https://github.com/chengggit/MCSR-Tracker#readme",
+  "private": true,
+  "devDependencies": {
+    "@types/chart.js": "^2.9.41",
+    "chart.js": "^4.5.1"
+  }
+}
