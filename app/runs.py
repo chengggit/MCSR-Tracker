@@ -116,16 +116,20 @@ def get_stats(conn: sqlite3.Connection) -> dict:
     return stats
 
 
-def get_daily_finish_rate(conn: sqlite3.Connection) -> list[dict]:
-    rows = conn.execute(
-        """SELECT (date / 86400000) * 86400000 AS day_start,
-        COUNT(*) AS total,
-        SUM(is_completed) AS completed
-        FROM runs
-        GROUP BY day_start
-        ORDER BY day_start"""
-    ).fetchall()
-    return [dict(row) for row in rows]
+def fetch_monthly_activity_summary(
+    conn: sqlite3.Connection,
+) -> list[tuple[str, int, int]]:
+    query = """
+    SELECT
+      strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
+      COUNT(*) AS total,
+      SUM(is_completed) AS completed
+    FROM runs
+    GROUP BY month_start
+    ORDER BY month_start ASC
+    """
+
+    return conn.execute(query).fetchall()
 
 
 def get_runs(

@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.db import get_db
 from app.runs import (
-    get_daily_finish_rate,
+    fetch_monthly_activity_summary,
     get_run_by_id,
     get_run_by_world,
     get_run_id,
@@ -128,9 +128,9 @@ def get_run_by_id_endpoint(run_id: int, conn=Depends(get_db)):
     return metadata
 
 
-@router.get("/charts/finish-rate")
+@router.get("/activity/monthly")
 def get_finish_rate_endpoint(conn=Depends(get_db)):
-    return get_daily_finish_rate(conn)
+    return fetch_monthly_activity_summary(conn)
 
 
 app.include_router(router)
