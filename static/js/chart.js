@@ -110,7 +110,7 @@ export function createVerticalGradient(
  * @param {Array<import('chart.js').ChartDataset>} datasets - Array of dataset configurations
  * @param {import('chart.js').ChartOptions} [options]
  * @returns {import('chart.js').Chart}
- * */
+ */
 export function lineChart(canvasElement, labels, datasets, options = {}) {
   const ctx = canvasElement.getContext("2d");
 
@@ -125,109 +125,24 @@ export function lineChart(canvasElement, labels, datasets, options = {}) {
   });
 }
 
-let activityChart = null;
-
-export function renderActivityChart(mode, data) {
-  if (activityChart) activityChart.destroy();
-
-  let labels, totals, completions;
-
-  if (mode === "weekly") {
-    const weekly = data.slice(-7);
-    labels = weekly.map((d) =>
-      new Date(d.day_start).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
-    );
-    totals = weekly.map((d) => d.total);
-    completions = weekly.map((d) => d.completed);
-  } else {
-    const months = {};
-    for (const d of data) {
-      const date = new Date(d.day_start);
-      const key = `${date.getFullYear()}-${date.getMonth()}`;
-      if (!months[key]) {
-        months[key] = {
-          label: date.toLocaleString("en-US", {
-            month: "short",
-            year: "numeric",
-          }),
-          total: 0,
-          completed: 0,
-        };
-      }
-      months[key].total += d.total;
-      months[key].completed += d.completed;
-    }
-    labels = Object.values(months).map((m) => m.label);
-    totals = Object.values(months).map((m) => m.total);
-    completions = Object.values(months).map((m) => m.completed);
-  }
-
-  const ctx = document.getElementById("activity-chart").getContext("2d");
+/**
+ * Render a line chart.
+ * @param {HTMLCanvasElement} canvasElement
+ * @param {Array<string>} labels - Array of x-axis labels
+ * @param {Array<import('chart.js').ChartDataset>} datasets - Array of dataset configurations
+ * @param {import('chart.js').ChartOptions} [options]
+ * @returns {import('chart.js').Chart}
+ */
+export function activityChart(canvasElement, labels, datasets, options = {}) {
+  const ctx = canvasElement.getContext("2d");
 
   return new Chart(ctx, {
     type: "bar",
     data: {
       labels,
-      datasets: [
-        {
-          label: "Attempts",
-          data: totals,
-          backgroundColor: mutedColor,
-          borderWidth: 0,
-        },
-        {
-          label: "Finished Run",
-          data: completions,
-          backgroundColor: primaryColor,
-          borderWidth: 0,
-        },
-      ],
+      datasets: datasets,
     },
-    options: {
-      maintainAspectRatio: false,
-      interaction: {
-        mode: "index",
-        intersect: false,
-      },
-      scales: {
-        x: {
-          border: {
-            dash: [4, 4],
-          },
-          grid: {
-            color: borderColor,
-            drawTicks: false,
-            lineWidth: 0.5,
-          },
-        },
-        y: {
-          border: {
-            dash: [4, 4],
-          },
-          grid: {
-            color: borderColor,
-            drawTicks: false,
-            lineWidth: 0.5,
-          },
-        },
-      },
-      plugins: {
-        tooltip: {
-          mode: "index",
-          intersect: false,
-          caretSize: 0,
-          titleColor: mutedFG,
-          bodyColor: mutedFG,
-          backgroundColor: popover,
-          borderColor: borderColor,
-          borderWidth: 1,
-          cornerRadius: 0,
-        },
-      },
-    },
+    options: options,
     plugins: [ACTIVITY_HIGHLIGHT_PLUGIN],
   });
 }

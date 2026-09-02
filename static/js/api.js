@@ -41,9 +41,9 @@ export async function fetchRunsStats() {
   }
 }
 
-export async function fetchFinishRate() {
+export async function fetchMonthlyActivity() {
   try {
-    const response = await fetch(`${apiUrl}/charts/finish-rate`);
+    const response = await fetch(`${apiUrl}/activity/monthly`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }

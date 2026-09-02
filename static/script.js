@@ -2,7 +2,7 @@ import {
   createVerticalGradient,
   getThemeColors,
   lineChart,
-  renderActivityChart,
+  activityChart,
 } from "./js/chart.js";
 
 import {
@@ -10,7 +10,7 @@ import {
   fetchSplitsStats,
   fetchRunsStats,
   fetchDashboardStats,
-  fetchFinishRate,
+  fetchMonthlyActivity,
 } from "./js/api.js";
 
 import {
@@ -26,7 +26,7 @@ function renderPerformanceChart() {
   const canvas = document.getElementById("performance-chart");
   if (!canvas) return;
 
-  if (performanceChartInstance) performanceChartInstance.destroy;
+  if (performanceChartInstance) performanceChartInstance.destroy();
 
   const greenGradient = [
     [0, "rgba(59, 209, 111, 0.35)"],
@@ -113,16 +113,103 @@ function renderPerformanceChart() {
 
 renderPerformanceChart();
 
-let dailyData = [];
-fetchFinishRate()
-  .then((data) => {
-    if (!data) return;
-    dailyData = data;
-    renderActivityChart("monthly", dailyData);
-  })
-  .catch((err) => {
-    console.error("Couldn't load finish rate:", err);
-  });
+let activityChartInstance = null;
+
+async function renderActivityChart() {
+  const months = await fetchMonthlyActivity();
+  if (!months || !months.length) return;
+
+  const canvas = document.getElementById("activity-chart");
+  if (!canvas) return;
+
+  // format to 3-letter month shorthand
+  const labels = months.map((m) =>
+    new Date(m.month_start + "T00:00:00").toLocaleString("en-US", {
+      month: "short",
+      year: "numeric",
+    }),
+  );
+
+  const total = months.map((m) => m.total);
+  const completions = months.map((m) => m.completed);
+
+  if (activityChartInstance) activityChartInstance.destroy();
+
+  const colors = getThemeColors();
+
+  const datasets = [
+    {
+      label: "Attempts",
+      data: total,
+      backgroundColor: colors.muted,
+      borderWidth: 0,
+    },
+    {
+      label: "Finished Run",
+      data: completions,
+      backgroundColor: colors.primary,
+      borderWidth: 0,
+    },
+  ];
+
+  const options = {
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: colors.mutedFG,
+        },
+        border: {
+          dash: [4, 4],
+        },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+      y: {
+        ticks: {
+          color: colors.mutedFG,
+        },
+        border: {
+          dash: [4, 4],
+        },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+    },
+    plugins: {
+      tooltip: {
+        mode: "index",
+        intersect: false,
+        caretSize: 0,
+        titleColor: colors.mutedFG,
+        bodyColor: colors.mutedFG,
+        backgroundColor: colors.popover,
+        borderColor: colors.border,
+        borderWidth: 1,
+        cornerRadius: 0,
+      },
+      legend: {
+        labels: {
+          color: colors.mutedFG,
+        },
+      },
+    },
+  };
+
+  activityChartInstance = activityChart(canvas, labels, datasets, options);
+}
+
+renderActivityChart();
 
 fetchRecentRuns()
   .then(renderRecentRuns)
@@ -159,21 +246,6 @@ renderDropdown({
     {
       name: "FSG",
       callback: () => {},
-    },
-  ],
-});
-
-const activityBtn = document.getElementById("activity-btn");
-renderDropdown({
-  trigger: activityBtn,
-  items: [
-    {
-      name: "Monthly Activity",
-      callback: () => renderActivityChart("monthly", dailyData),
-    },
-    {
-      name: "Weekly Activity",
-      callback: () => renderActivityChart("weekly", dailyData),
     },
   ],
 });

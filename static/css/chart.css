@@ -58,12 +58,7 @@
   gap: var(--gap-24);
 }
 
-#activity-btn {
-  font-family: var(--font-1);
-  font-size: var(--font-size-m);
-  color: var(--foreground);
-  background: transparent;
-  border: transparent;
+.activity-title {
   margin-bottom: var(--margin-16);
 }
 
