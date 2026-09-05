@@ -21,6 +21,62 @@ import {
   renderDropdown,
 } from "./js/dom.js";
 
+import { RunModal } from "./js/modal.js";
+
+let runData = {
+  mc_version: "1.16.1",
+  category: "ANY",
+  run_type: "set_seed",
+  is_completed: true,
+  world_name: "Set Speedrun #3099",
+  date: 1784542191514,
+  retimed_igt: 572922,
+  final_igt: 572922,
+  final_rta: 593992,
+  instance: "FSG",
+  timelines: [
+    {
+      name: "enter_nether",
+      igt: 84748,
+      rta: 86041,
+    },
+    {
+      name: "enter_bastion",
+      igt: 84765,
+      rta: 86485,
+    },
+    {
+      name: "enter_fortress",
+      igt: 280515,
+      rta: 288540,
+    },
+    {
+      name: "nether_travel",
+      igt: 428415,
+      rta: 436681,
+    },
+    {
+      name: "enter_stronghold",
+      igt: 483584,
+      rta: 499688,
+    },
+    {
+      name: "enter_end",
+      igt: 514284,
+      rta: 532630,
+    },
+    {
+      name: "kill_ender_dragon",
+      igt: 551389,
+      rta: 572480,
+    },
+  ],
+};
+document.addEventListener("DOMContentLoaded", () => {
+  RunModal.init();
+  RunModal.open(runData);
+});
+
 let performanceChartInstance = null;
 function renderPerformanceChart() {
   const canvas = document.getElementById("performance-chart");
@@ -249,3 +305,118 @@ renderDropdown({
     },
   ],
 });
+
+let modalChartInstance = null;
+function renderModalChart() {
+  const canvas = document.getElementById("modal-chart");
+  if (!canvas) return;
+
+  if (modalChartInstance) modalChartInstance.destroy();
+
+  const greenGradient = [
+    [0, "rgba(59, 209, 111, 0.35)"],
+    [0.6, "rgba(59, 209, 111, 0.1)"],
+    [1, "rgba(59, 209, 111, 0.0)"],
+  ];
+
+  const colors = getThemeColors();
+
+  const labels = [
+    "Nether",
+    "Bastion",
+    "Fortress",
+    "Blind",
+    "Stronghold",
+    "End Enter",
+    "Finish",
+  ];
+
+  const mockData = [1.5, 2.5, 5.2, 7.4, 8.6, 9, 10.1];
+  const mockData2 = [1.4, 2.2, 4.5, 6.3, 7.5, 8.1, 9.2];
+
+  const datasets = [
+    {
+      data: mockData,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 3,
+      pointBackgroundColor: colors.primary,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: (context) =>
+        createVerticalGradient(context, greenGradient),
+    },
+    {
+      data: mockData2,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 3,
+      pointBackgroundColor: colors.primary,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: (context) =>
+        createVerticalGradient(context, greenGradient),
+    },
+  ];
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "index",
+      intersect: false,
+      axis: "x",
+    },
+
+    scales: {
+      x: {
+        ticks: {
+          color: colors.mutedFG,
+        },
+        border: {
+          dash: [4, 4],
+        },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+      y: {
+        ticks: {
+          color: colors.mutedFG,
+        },
+        grace: "25%",
+        border: {
+          dash: [4, 4],
+        },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+    },
+
+    plugins: {
+      tooltip: {
+        caretSize: 0,
+        titleColor: colors.mutedFG,
+        bodyColor: colors.primary,
+        backgroundColor: colors.popover,
+        borderColor: colors.border,
+        borderWidth: 1,
+        cornerRadius: 0,
+      },
+      legend: {
+        display: false,
+      },
+    },
+  };
+
+  modalChartInstance = lineChart(canvas, labels, datasets, options);
+}
+
+renderModalChart();
