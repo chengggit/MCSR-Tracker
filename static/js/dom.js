@@ -37,7 +37,9 @@ export function renderRecentRuns(runs) {
 
 export function renderSplitsStats(stats) {
   for (const split of stats) {
-    const row = document.querySelector(`[data-split="${split.name}"]`);
+    const row = document.querySelector(
+      `.split-row[data-split="${split.name}"]`,
+    );
     if (!row) continue;
 
     row.querySelector(".split-avg").textContent = msToTime(split.avg_igt);
@@ -46,7 +48,7 @@ export function renderSplitsStats(stats) {
 }
 
 export function renderRunsStats(stats) {
-  const row = document.querySelector(`[data-split="completion"]`);
+  const row = document.querySelector(`.split-row[data-split="completion"]`);
 
   row.querySelector(".split-avg").textContent = msToTime(stats.avg_igt);
   row.querySelector(".split-best").textContent = msToTime(stats.best_igt);
