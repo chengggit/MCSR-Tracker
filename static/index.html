@@ -170,6 +170,7 @@
           <div class="modal-banner-meta">
             <h2 id="modal-banner-run">Set Speedrun #3099</h2>
             <span id="modal-banner-instance">RSG (1.16.1)</span>
+            <span id="modal-banner-date">Jul 26, 2026</span>
           </div>
           <div class="modal-banner-time">
             <span id="modal-banner-igt">09:32.809</span>
@@ -177,16 +178,19 @@
           </div>
         </div>
 
-        <div class="modal-chart">
-          <canvas id="modalChart"></canvas>
+        <div class="modal-chart-container chart-container">
+          <div class="chart-header">
+            <h2 class="chart-title panel-title">CUMULATIVE TIME vs PB</h2>
+          </div>
+          <canvas id="modal-chart"></canvas>
         </div>
 
         <div class="modal-splits-table">
           <h2 class="modal-splits-title panel-title">SPLITS</h2>
           <div class="modal-splits-header">
             <span>Split</span>
-            <span>Segment</span>
             <span>IGT</span>
+            <span>Segment</span>
             <span>vs Avg</span>
             <span>vs PB</span>
           </div>
@@ -195,13 +199,13 @@
             <div class="modal-splits-row" data-split="enter_nether">
               <span>Nether Enter</span>
             </div>
-            <div class="modal-splits-row" data-split="enter_bastion">
-              <span>Bastion</span>
+            <div class="modal-splits-row" data-split="structure_1">
+              <span>Structure 1</span>
             </div>
-            <div class="modal-splits-row" data-split="enter_fortress">
-              <span>Fortress</span>
+            <div class="modal-splits-row" data-split="structure_2">
+              <span>Structure 2</span>
             </div>
-            <div class="modal-splits-row" data-split="nether_travel_blind">
+            <div class="modal-splits-row" data-split="nether_travel">
               <span>Nether Blind</span>
             </div>
             <div class="modal-splits-row" data-split="enter_stronghold">
@@ -209,6 +213,9 @@
             </div>
             <div class="modal-splits-row" data-split="enter_end">
               <span>End Enter</span>
+            </div>
+            <div class="modal-splits-row" data-split="completion">
+              <span>Completion</span>
             </div>
           </div>
         </div>
