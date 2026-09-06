@@ -22,7 +22,7 @@ TIMELINE_NAMES = {
     "enter_nether",
     "enter_bastion",
     "enter_fortress",
-    "nether_travel_blind",
+    "nether_travel",
     "enter_stronghold",
     "enter_end",
     "kill_ender_dragon",
