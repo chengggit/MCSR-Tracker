@@ -61,7 +61,3 @@
 .activity-title {
   margin-bottom: var(--margin-16);
 }
-
-#activity-chart {
-  max-height: 200px;
-}
