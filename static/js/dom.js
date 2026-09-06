@@ -7,6 +7,7 @@ export function renderRecentRuns(runs) {
     const isCompleted = r.is_completed;
     const row = document.createElement("div");
     row.className = "recent-runs-row";
+    row.setAttribute("data-run-id", r.id);
 
     function makeCell(text) {
       const cell = document.createElement("span");

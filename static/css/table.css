@@ -58,4 +58,5 @@
 
 .recent-runs-row:hover {
   background: rgba(from var(--secondary) r g b / 0.5);
+  cursor: pointer;
 }

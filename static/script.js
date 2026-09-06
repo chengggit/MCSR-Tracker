@@ -7,6 +7,7 @@ import {
 
 import {
   fetchRecentRuns,
+  fetchRunById,
   fetchSplitsStats,
   fetchRunsStats,
   fetchDashboardStats,
@@ -23,58 +24,27 @@ import {
 
 import { RunModal } from "./js/modal.js";
 
-let runData = {
-  mc_version: "1.16.1",
-  category: "ANY",
-  run_type: "set_seed",
-  is_completed: true,
-  world_name: "Set Speedrun #3099",
-  date: 1784542191514,
-  retimed_igt: 572922,
-  final_igt: 572922,
-  final_rta: 593992,
-  instance: "FSG",
-  timelines: [
-    {
-      name: "enter_nether",
-      igt: 84748,
-      rta: 86041,
-    },
-    {
-      name: "enter_bastion",
-      igt: 84765,
-      rta: 86485,
-    },
-    {
-      name: "enter_fortress",
-      igt: 280515,
-      rta: 288540,
-    },
-    {
-      name: "nether_travel",
-      igt: 428415,
-      rta: 436681,
-    },
-    {
-      name: "enter_stronghold",
-      igt: 483584,
-      rta: 499688,
-    },
-    {
-      name: "enter_end",
-      igt: 514284,
-      rta: 532630,
-    },
-    {
-      name: "kill_ender_dragon",
-      igt: 551389,
-      rta: 572480,
-    },
-  ],
-};
 document.addEventListener("DOMContentLoaded", () => {
   RunModal.init();
-  RunModal.open(runData);
+
+  const runsContainer = document.getElementById("recent-runs-body");
+
+  runsContainer.addEventListener("click", async (e) => {
+    const row = e.target.closest(".recent-runs-row");
+    if (!row) return;
+
+    const runId = row.dataset.runId;
+
+    try {
+      const runData = await fetchRunById(runId);
+      const allSplitsData = await fetchSplitsStats();
+      const pbRunData = await fetchRunById(473);
+
+      RunModal.open(runData, allSplitsData, pbRunData);
+    } catch (err) {
+      console.error("Failed to load run details:", err);
+    }
+  });
 });
 
 let performanceChartInstance = null;
@@ -209,7 +179,7 @@ async function renderActivityChart() {
   ];
 
   const options = {
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,
     interaction: {
       mode: "index",
       intersect: false,

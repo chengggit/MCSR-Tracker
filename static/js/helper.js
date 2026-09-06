@@ -13,7 +13,7 @@ export function msToTime(ms) {
 
 /**
  * @param {number} unixTime
- * @returns {string} - e.g. July, 6, 2026
+ * @returns {string} e.g. July, 6, 2026
  */
 export function unixToDate(unixTime) {
   return new Date(unixTime).toLocaleString("en-US", {

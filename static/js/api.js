@@ -14,6 +14,20 @@ export async function fetchRecentRuns() {
   }
 }
 
+export async function fetchRunById(runId) {
+  try {
+    const response = await fetch(`${apiUrl}/id/${runId}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 export async function fetchSplitsStats() {
   try {
     const response = await fetch(`${apiUrl}/splits/stats`);

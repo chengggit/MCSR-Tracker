@@ -7,7 +7,16 @@ const SPLIT_DISPLAY_NAMES = {
   enter_end: "End Enter",
 };
 
-function normalizeSplits(rawSplits) {
+const SPLITS_FILTER = new Set([
+  "enter_nether",
+  "structure_1",
+  "structure_2",
+  "nether_travel",
+  "enter_stronghold",
+  "enter_end",
+]);
+
+function formatSplits(rawSplits) {
   if (!rawSplits || rawSplits.length === 0) return [];
 
   let structureIndex = 0;
@@ -36,6 +45,16 @@ function normalizeSplits(rawSplits) {
     });
 }
 
+function formatDelta(ms) {
+  const sign = ms <= 0 ? "-" : "+";
+  return `${sign}${msToTime(Math.abs(ms))}`;
+}
+
+// class for dom
+function deltaClass(deltaMs) {
+  return deltaMs <= 0 ? "delta-ahead" : "delta-behind";
+}
+
 export const RunModal = {
   element: null,
   closeBtn: null,
@@ -58,10 +77,10 @@ export const RunModal = {
     });
   },
 
-  open(runData) {
+  open(runData, allSplitsData, pbData) {
     if (!this.element) return;
 
-    if (runData) this.populate(runData);
+    if (runData) this.populate(runData, allSplitsData, pbData);
 
     this.element.classList.remove("hidden");
     document.body.style.overflow = "hidden";
@@ -78,7 +97,29 @@ export const RunModal = {
     return this.element && !this.element.classList.contains("hidden");
   },
 
-  populate(runData) {
+  resetRows() {
+    const columns = document.querySelectorAll(`
+    .modal-splits-row .modal-col-igt,
+    .modal-splits-row .modal-col-segment,
+    .modal-splits-row .modal-col-avg,
+    .modal-splits-row .modal-col-pb
+    `);
+
+    columns.forEach((col) => {
+      col.textContent = "";
+    });
+
+    const colWithClass = document.querySelectorAll(
+      `.modal-splits-row .modal-col-avg, .modal-splits-row .modal-col-pb`,
+    );
+    colWithClass.forEach((col) => {
+      col.classList.remove("delta-ahead", "delta-behind");
+    });
+  },
+
+  populate(runData, allSplitsData, pbData) {
+    this.resetRows();
+
     document.getElementById("modal-banner-run").textContent =
       runData.world_name;
     document.getElementById("modal-banner-instance").textContent =
@@ -86,32 +127,16 @@ export const RunModal = {
     document.getElementById("modal-banner-date").textContent = unixToDate(
       runData.date,
     );
-    document.getElementById("modal-banner-igt").textContent = msToTime(
-      runData.final_igt,
+    document.getElementById("modal-banner-igt").textContent =
+      runData.is_completed ? msToTime(runData.final_igt) : "-";
+    document.getElementById("modal-banner-rta").textContent =
+      runData.is_completed ? msToTime(runData.final_rta) : "-";
+
+    const splits = formatSplits(runData.timelines);
+    const pbSplits = formatSplits(pbData.timelines);
+    const allSplits = allSplitsData.filter((split) =>
+      SPLITS_FILTER.has(split.name),
     );
-    document.getElementById("modal-banner-rta").textContent = msToTime(
-      runData.final_rta,
-    );
-
-    const makeCell = (text, tooltipText = "") => {
-      const cell = document.createElement("span");
-      cell.className = "cell";
-
-      const textSpan = document.createElement("span");
-      textSpan.textContent = text;
-      cell.appendChild(textSpan);
-
-      if (tooltipText) {
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip";
-        tooltip.textContent = tooltipText;
-        cell.appendChild(tooltip);
-      }
-
-      return cell;
-    };
-
-    const splits = normalizeSplits(runData.timelines);
 
     for (let i = 0; i < splits.length; i++) {
       const split = splits[i];
@@ -120,16 +145,30 @@ export const RunModal = {
       const prevLabel = i === 0 ? "Start" : splits[i - 1].actualName;
 
       const segmentMs = split.igt - prevIgt;
-      const tooltip = `${prevLabel} ➔ ${split.actualName}`;
+      const tooltipText = `${prevLabel} ➔ ${split.actualName}`;
+
+      const avgDeltaMs = split.igt - allSplits[i].avg_igt;
+      const pbDeltaMs = split.igt - pbSplits[i].igt;
 
       const row = document.querySelector(
         `.modal-splits-row[data-split="${split.name}"]`,
       );
       if (!row) continue;
 
-      row.querySelectorAll(".cell").forEach((cell) => cell.remove());
-      row.appendChild(makeCell(msToTime(split.igt)));
-      row.appendChild(makeCell(msToTime(segmentMs), tooltip));
+      row.querySelector(".modal-col-igt").textContent = msToTime(split.igt);
+      row.querySelector(".modal-col-segment").textContent = msToTime(segmentMs);
+      row.querySelector(".modal-col-avg").textContent = formatDelta(avgDeltaMs);
+      row.querySelector(".modal-col-pb").textContent = formatDelta(pbDeltaMs);
+
+      row.querySelector(".modal-col-avg").classList.add(deltaClass(avgDeltaMs));
+      row.querySelector(".modal-col-pb").classList.add(deltaClass(pbDeltaMs));
+
+      if (split) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip";
+        tooltip.textContent = tooltipText;
+        row.querySelector(".modal-col-segment").appendChild(tooltip);
+      }
     }
 
     const endSplit = splits.find((s) => s.name === "enter_end");
@@ -137,15 +176,34 @@ export const RunModal = {
       `.modal-splits-row[data-split="completion"]`,
     );
 
-    if (endSplit && completionRow) {
+    if (runData.is_completed === 1) {
       const completionSegmentMs = runData.final_igt - endSplit.igt;
-      const tooltip = "End Enter ➔ Finish";
+      const completionAvgDeltaMs = runData.final_igt - pbData.final_igt; // THIS NEEDS TO BE FIXED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      const completionPbDeltaMs = runData.final_igt - pbData.final_igt;
 
-      completionRow.querySelectorAll(".cell").forEach((cell) => cell.remove());
-      completionRow.appendChild(makeCell(msToTime(runData.final_igt)));
-      completionRow.appendChild(
-        makeCell(msToTime(completionSegmentMs), tooltip),
+      const tooltipText = "End Enter ➔ Finish";
+
+      completionRow.querySelector(".modal-col-igt").textContent = msToTime(
+        runData.final_igt,
       );
+      completionRow.querySelector(".modal-col-segment").textContent =
+        msToTime(completionSegmentMs);
+      completionRow.querySelector(".modal-col-avg").textContent =
+        formatDelta(completionAvgDeltaMs);
+      completionRow.querySelector(".modal-col-pb").textContent =
+        formatDelta(completionPbDeltaMs);
+
+      completionRow
+        .querySelector(".modal-col-avg")
+        .classList.add(deltaClass(completionAvgDeltaMs));
+      completionRow
+        .querySelector(".modal-col-pb")
+        .classList.add(deltaClass(completionPbDeltaMs));
+
+      const tooltip = document.createElement("div");
+      tooltip.className = "tooltip";
+      tooltip.textContent = tooltipText;
+      completionRow.querySelector(".modal-col-segment").appendChild(tooltip);
     }
   },
 };
