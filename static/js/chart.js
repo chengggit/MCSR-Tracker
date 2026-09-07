@@ -1,5 +1,8 @@
+import { fetchMonthlyActivity } from "./api.js";
+
 Chart.defaults.font.family = "JetBrains Mono";
 
+/* --- Plugins --- */
 const HOVER_GRID_PLUGIN = {
   id: "hoverGrid",
   afterDraw(chart) {
@@ -51,22 +54,7 @@ const ACTIVITY_HIGHLIGHT_PLUGIN = {
   },
 };
 
-/**
- * Get the current CSS theme variables with fallback values.
- * @returns {{ primary: string, muted: string, border: string, mutedFG: string, popover: string }}
- */
-export function getThemeColors() {
-  const style = getComputedStyle(document.documentElement);
-
-  return {
-    primary: style.getPropertyValue("--chart-1").trim() || "#3bd16f",
-    muted: style.getPropertyValue("--chart-3").trim() || "#1e2e1e",
-    border:
-      style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
-    mutedFG: style.getPropertyValue("--muted-foreground").trim() || "#6a8a5a",
-    popover: style.getPropertyValue("--popover").trim() || "#111911",
-  };
-}
+/* --- Utils --- */
 
 /**
  * Creates a background gradient for chart datasets.
@@ -75,11 +63,7 @@ export function getThemeColors() {
  * @param {number} [heightFactor=0.9] - Fraction of chart height for gradient
  * @returns {CanvasGradient | null}
  */
-export function createVerticalGradient(
-  context,
-  colorStops,
-  heightFactor = 0.9,
-) {
+function createVerticalGradient(context, colorStops, heightFactor = 0.9) {
   const chart = context.chart;
   const { ctx, chartArea } = chart;
 
@@ -111,7 +95,7 @@ export function createVerticalGradient(
  * @param {import('chart.js').ChartOptions} [options]
  * @returns {import('chart.js').Chart}
  */
-export function lineChart(canvasElement, labels, datasets, options = {}) {
+function lineChart(canvasElement, labels, datasets, options = {}) {
   const ctx = canvasElement.getContext("2d");
 
   return new Chart(ctx, {
@@ -133,7 +117,7 @@ export function lineChart(canvasElement, labels, datasets, options = {}) {
  * @param {import('chart.js').ChartOptions} [options]
  * @returns {import('chart.js').Chart}
  */
-export function activityChart(canvasElement, labels, datasets, options = {}) {
+function activityChart(canvasElement, labels, datasets, options = {}) {
   const ctx = canvasElement.getContext("2d");
 
   return new Chart(ctx, {
@@ -145,4 +129,218 @@ export function activityChart(canvasElement, labels, datasets, options = {}) {
     options: options,
     plugins: [ACTIVITY_HIGHLIGHT_PLUGIN],
   });
+}
+
+/**
+ * Get the current CSS theme variables with fallback values.
+ * @returns {{ primary: string, muted: string, border: string, mutedFG: string, popover: string }}
+ */
+function getThemeColors() {
+  const style = getComputedStyle(document.documentElement);
+
+  return {
+    primary: style.getPropertyValue("--chart-1").trim() || "#3bd16f",
+    muted: style.getPropertyValue("--chart-3").trim() || "#1e2e1e",
+    border:
+      style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
+    mutedFG: style.getPropertyValue("--muted-foreground").trim() || "#6a8a5a",
+    popover: style.getPropertyValue("--popover").trim() || "#111911",
+  };
+}
+
+/**
+ * Get a base options and styling for chart
+ * @returns {import('chart.js').ChartOptions}
+ */
+function getBaseChartOptions() {
+  const colors = getThemeColors();
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
+    scales: {
+      x: {
+        ticks: { color: colors.mutedFG },
+        border: { dash: [4, 4] },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+      y: {
+        ticks: { color: colors.mutedFG },
+        grace: "25%",
+        border: { dash: [4, 4] },
+        grid: {
+          color: colors.border,
+          drawTicks: false,
+          lineWidth: 0.5,
+        },
+      },
+    },
+    plugins: {
+      tooltip: {
+        titleColor: colors.mutedFG,
+        bodyColor: colors.primary,
+        backgroundColor: colors.popover,
+        borderColor: colors.border,
+        caretSize: 0,
+        borderWidth: 1,
+        cornerRadius: 0,
+      },
+      legend: { display: false },
+    },
+  };
+}
+
+/* --- Renderers ---*/
+
+let performanceChartInstance = null;
+export function renderPerformanceChart() {
+  const canvas = document.getElementById("performance-chart");
+  if (!canvas) return;
+
+  if (performanceChartInstance) performanceChartInstance.destroy();
+
+  const greenGradient = [
+    [0, "rgba(59, 209, 111, 0.35)"],
+    [0.6, "rgba(59, 209, 111, 0.1)"],
+    [1, "rgba(59, 209, 111, 0.0)"],
+  ];
+
+  const colors = getThemeColors();
+
+  const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const mockData = [13, 12.3, 11.8, 11, 11.9, 10, 10.1, 11.1, 9.9, 9.6, 10.1];
+  const datasets = [
+    {
+      data: mockData,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 3,
+      pointBackgroundColor: colors.primary,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: (context) =>
+        createVerticalGradient(context, greenGradient),
+    },
+  ];
+
+  performanceChartInstance = lineChart(
+    canvas,
+    labels,
+    datasets,
+    getBaseChartOptions(),
+  );
+}
+
+let modalChartInstance = null;
+export function renderModalChart(runData, pbData) {
+  const canvas = document.getElementById("modal-chart");
+  if (!canvas) return;
+
+  if (modalChartInstance) modalChartInstance.destroy();
+
+  const greenGradient = [
+    [0, "rgba(59, 209, 111, 0.35)"],
+    [0.6, "rgba(59, 209, 111, 0.1)"],
+    [1, "rgba(59, 209, 111, 0.0)"],
+  ];
+
+  const colors = getThemeColors();
+
+  const labels = [
+    "Nether",
+    "Structure 1",
+    "Structure 2",
+    "Blind",
+    "Stronghold",
+    "End Enter",
+    "Finish",
+  ];
+
+  const datasets = [
+    {
+      data: runData,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 3,
+      pointBackgroundColor: colors.primary,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: (context) =>
+        createVerticalGradient(context, greenGradient),
+    },
+    {
+      data: pbData,
+      borderColor: colors.primary,
+      borderWidth: 2,
+      pointRadius: 2,
+      pointHoverRadius: 3,
+      pointBackgroundColor: colors.primary,
+      tension: 0.2,
+      fill: true,
+      backgroundColor: (context) =>
+        createVerticalGradient(context, greenGradient),
+    },
+  ];
+
+  modalChartInstance = lineChart(
+    canvas,
+    labels,
+    datasets,
+    getBaseChartOptions(),
+  );
+}
+
+let activityChartInstance = null;
+export async function renderActivityChart() {
+  const months = await fetchMonthlyActivity();
+  if (!months || !months.length) return;
+
+  const canvas = document.getElementById("activity-chart");
+  if (!canvas) return;
+
+  if (activityChartInstance) activityChartInstance.destroy();
+
+  const colors = getThemeColors();
+
+  // format to 3-letter month shorthand
+  const labels = months.map((m) =>
+    new Date(m.month_start + "T00:00:00").toLocaleString("en-US", {
+      month: "short",
+      year: "numeric",
+    }),
+  );
+  const datasets = [
+    {
+      label: "Attempts",
+      data: months.map((m) => m.total),
+      backgroundColor: colors.muted,
+      borderWidth: 0,
+    },
+    {
+      label: "Finished Run",
+      data: months.map((m) => m.completed),
+      backgroundColor: colors.primary,
+      borderWidth: 0,
+    },
+  ];
+
+  const options = getBaseChartOptions();
+  options.maintainAspectRatio = true;
+  options.plugins.legend = {
+    display: true,
+    labels: { color: colors.mutedFG },
+  };
+  options.plugins.tooltip.bodyColor = colors.mutedFG;
+
+  activityChartInstance = activityChart(canvas, labels, datasets, options);
 }

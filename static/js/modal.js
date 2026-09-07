@@ -1,3 +1,4 @@
+import { renderModalChart } from "./chart.js";
 import { msToTime, unixToDate } from "./helper.js";
 
 const SPLIT_DISPLAY_NAMES = {
@@ -50,7 +51,7 @@ function formatDelta(ms) {
   return `${sign}${msToTime(Math.abs(ms))}`;
 }
 
-// class for dom
+// Class for dom
 function deltaClass(deltaMs) {
   return deltaMs <= 0 ? "delta-ahead" : "delta-behind";
 }
@@ -120,6 +121,7 @@ export const RunModal = {
   populate(runData, allSplitsData, pbData) {
     this.resetRows();
 
+    // Banner
     document.getElementById("modal-banner-run").textContent =
       runData.world_name;
     document.getElementById("modal-banner-instance").textContent =
@@ -134,10 +136,21 @@ export const RunModal = {
 
     const splits = formatSplits(runData.timelines);
     const pbSplits = formatSplits(pbData.timelines);
-    const allSplits = allSplitsData.filter((split) =>
+    const allSplits = allSplitsData.splits.filter((split) =>
       SPLITS_FILTER.has(split.name),
     );
 
+    // Chart
+    const chartRunData = splits.map((m) => m.igt);
+    if (runData.is_completed === 1 && runData.final_igt) {
+      chartRunData.push(runData.final_igt);
+    }
+    const chartPbData = pbSplits.map((m) => m.igt);
+    chartPbData.push(pbData.final_igt);
+
+    renderModalChart(chartRunData, chartPbData);
+
+    // Table
     for (let i = 0; i < splits.length; i++) {
       const split = splits[i];
 
@@ -178,7 +191,8 @@ export const RunModal = {
 
     if (runData.is_completed === 1) {
       const completionSegmentMs = runData.final_igt - endSplit.igt;
-      const completionAvgDeltaMs = runData.final_igt - pbData.final_igt; // THIS NEEDS TO BE FIXED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      const completionAvgDeltaMs =
+        runData.final_igt - allSplitsData.overall.avg_igt;
       const completionPbDeltaMs = runData.final_igt - pbData.final_igt;
 
       const tooltipText = "End Enter ➔ Finish";
