@@ -1,138 +1,62 @@
+import json
 import sqlite3
 
 
-def get_run_by_id(run_id: int, conn: sqlite3.Connection):
-    row = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
-
-    return dict(row) if row else None
-
-
-def get_run_by_world(world_name: str, instance: str, conn: sqlite3.Connection):
-    row = conn.execute(
-        "SELECT * FROM runs WHERE world_name = ? AND instance = ?",
-        (world_name, instance),
-    ).fetchone()
-
-    return dict(row) if row else None
-
-
-def get_run_timelines(run_id: int, conn: sqlite3.Connection):
-    rows = conn.execute(
-        "SELECT * FROM timelines WHERE run_id = ?", (run_id,)
-    ).fetchall()
-
-    return [dict(row) for row in rows]
-
-
-def get_run_id(world_name: str, instance: str, conn: sqlite3.Connection):
-    row = conn.execute(
-        "SELECT id FROM runs WHERE world_name = ? AND instance = ?",
-        (world_name, instance),
-    ).fetchone()
-
-    return row["id"]
-
-
-def get_runs_stats(conn: sqlite3.Connection):
-    row = conn.execute(
-        """SELECT
-        ROUND(AVG(r.final_igt)) AS avg_igt,
-        MIN(r.final_igt) AS best_igt,
-
-            (SELECT r2.world_name FROM runs r2
-            WHERE r2.is_completed = 1
-            ORDER BY r2.final_igt, r2.final_rta
-            LIMIT 1) AS pb_world
-
-        FROM runs r
-        WHERE is_completed = 1
-        ORDER BY best_igt
-        """
-    ).fetchone()
-    return row
-
-
-def get_splits_stats(conn: sqlite3.Connection) -> list[dict]:
-    rows = conn.execute(
-        """SELECT t.name,
-        ROUND(AVG(t.igt)) AS avg_igt,
-        MIN(t.igt) AS best_igt,
-
-            (SELECT t2.run_id FROM timelines t2
-            WHERE t2.name = t.name
-            ORDER BY t2.igt, t2.rta
-            LIMIT 1) AS best_run_id
-
-        FROM timelines t
-        GROUP BY t.name
-        ORDER BY best_igt
-        """
-    ).fetchall()
-
-    return [dict(row) for row in rows]
-
-
-def get_stats(conn: sqlite3.Connection) -> dict:
-    stats = {}
-
-    row = conn.execute("SELECT COUNT(*) AS total_runs FROM runs").fetchone()
-    stats["total_runs"] = row["total_runs"]
-
-    row = conn.execute(
-        "SELECT COUNT(*) AS completed_runs FROM runs WHERE is_completed = 1"
-    ).fetchone()
-    stats["completed_runs"] = row["completed_runs"]
-
-    row = conn.execute(
-        "SELECT COUNT(*) AS resets FROM runs WHERE is_completed != 1"
-    ).fetchone()
-    stats["resets"] = row["resets"]
-
-    row = conn.execute(
-        "SELECT ROUND(100.0 * SUM(is_completed) / COUNT(*), 1) AS finish_rate FROM runs"
-    ).fetchone()
-    stats["finish_rate"] = row["finish_rate"]
-
-    row = conn.execute(
-        "SELECT MIN(final_igt) AS pb_igt FROM runs WHERE is_completed = 1"
-    ).fetchone()
-    stats["pb_igt"] = row["pb_igt"]
-
-    row = conn.execute(
-        "SELECT date AS pb_date FROM runs WHERE is_completed = 1 ORDER BY final_igt"
-    ).fetchone()
-    stats["pb_date"] = row["pb_date"]
-
-    row = conn.execute(
-        "SELECT final_igt AS first_completed_igt FROM runs WHERE is_completed = 1 ORDER BY id ASC LIMIT 1"
-    ).fetchone()
-    stats["first_completed_igt"] = row["first_completed_igt"]
-
-    rows = conn.execute(
-        "SELECT name, COUNT(DISTINCT run_id) AS runs_reached FROM timelines GROUP BY name ORDER BY runs_reached DESC"
-    ).fetchall()
-    stats["split_reach"] = {row["name"]: row["runs_reached"] for row in rows}
-
-    return stats
-
-
-def fetch_monthly_activity_summary(
-    conn: sqlite3.Connection,
-) -> list[tuple[str, int, int]]:
+# --- Single Run Queries ---
+#
+def fetch_run_by_id(run_id: int, conn: sqlite3.Connection) -> dict | None:
     query = """
     SELECT
-      strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
-      COUNT(*) AS total,
-      SUM(is_completed) AS completed
-    FROM runs
-    GROUP BY month_start
-    ORDER BY month_start ASC
+        r.*,
+
+        json_group_array(
+            json_object('name', t.name, 'igt', t.igt, 'rta', t.rta)
+        ) FILTER (WHERE t.id IS NOT NULL) AS timelines
+
+    FROM runs r
+    LEFT JOIN timelines t ON r.id = t.run_id
+    WHERE r.id = ?
+    GROUP BY r.id
     """
 
-    return conn.execute(query).fetchall()
+    row = conn.execute(query, (run_id,)).fetchone()
+    if not row:
+        return None
+
+    data = dict(row)
+    data["timelines"] = json.loads(data["timelines"]) if data["timelines"] else []
+    return data
 
 
-def get_runs(
+def fetch_run_by_world(
+    world_name: str, instance: str, conn: sqlite3.Connection
+) -> dict | None:
+    query = """
+    SELECT
+        r.*,
+
+        json_group_array(
+            json_object('name', t.name, 'igt', t.igt, 'rta', t.rta)
+        ) FILTER (WHERE t.id IS NOT NULL) AS timelines
+
+    FROM runs r
+    LEFT JOIN timelines t ON r.id = t.run_id
+    WHERE r.world_name = ? AND r.instance = ?
+    GROUP BY r.id
+    """
+
+    row = conn.execute(query, (world_name, instance)).fetchone()
+    if not row:
+        return None
+
+    data = dict(row)
+    data["timelines"] = json.loads(data["timelines"]) if data["timelines"] else []
+    return data
+
+
+# --- Collection Queries ---
+#
+def fetch_runs(
     conn: sqlite3.Connection,
     instance: str | None,
     run_type: str | None,
@@ -171,3 +95,114 @@ def get_runs(
 
     rows = conn.execute(query, params).fetchall()
     return [dict(row) for row in rows]
+
+
+# --- Stats & Analytics Queries ---
+#
+def fetch_dashboard_stats(conn: sqlite3.Connection) -> dict:
+    stats_query = """
+    SELECT
+        COUNT(*) AS total_runs,
+        SUM(is_completed) AS completed_runs,
+        COUNT(*) - SUM(is_completed) AS resets,
+        ROUND(100.0 * SUM(is_completed) / COUNT(*), 1) AS finish_rate,
+        MIN(CASE WHEN is_completed = 1 THEN final_igt END) AS pb_igt,
+
+        (SELECT date FROM runs WHERE is_completed = 1 ORDER BY final_igt ASC LIMIT 1) AS pb_date,
+        (SELECT final_igt FROM runs WHERE is_completed = 1 ORDER BY id ASC LIMIT 1) AS first_completed_igt
+
+    FROM runs
+    """
+    stats = dict(conn.execute(stats_query).fetchone())
+
+    split_reach_query = """
+    SELECT name, COUNT(DISTINCT run_id) AS runs_reached
+    FROM timelines
+    GROUP BY name
+    ORDER BY runs_reached DESC
+    """
+    rows = conn.execute(split_reach_query).fetchall()
+    stats["split_reach"] = {row["name"]: row["runs_reached"] for row in rows}
+
+    return stats
+
+
+def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
+    # Fetch overall completed run stats
+    overall_query = """
+    SELECT
+        ROUND(AVG(r.final_igt)) AS avg_igt,
+        MIN(r.final_igt) AS best_igt,
+
+        (SELECT r2.id FROM runs r2
+         WHERE r2.is_completed = 1
+         ORDER BY r2.final_igt, r2.final_rta
+         LIMIT 1) AS pb_run_id
+
+    FROM runs r
+    WHERE is_completed = 1
+    """
+
+    overall_row = conn.execute(overall_query).fetchone()
+    overall_stats = dict(overall_row) if overall_row else {}
+
+    # Fetch split by split stats
+    splits_query = """
+    WITH mapped_splits AS (
+        SELECT
+            t.run_id,
+            t.igt,
+            t.rta,
+
+            CASE
+                WHEN t.name IN ('enter_bastion', 'enter_fortress') THEN
+                    'structure_' || ROW_NUMBER() OVER (
+                        PARTITION BY t.run_id,
+                        CASE WHEN t.name IN ('enter_bastion', 'enter_fortress') THEN 1 ELSE 0 END
+                        ORDER BY t.igt
+                    )
+                ELSE t.name
+            END AS name
+        FROM timelines t
+    )
+
+    SELECT
+        m.name,
+        ROUND(AVG(m.igt)) AS avg_igt,
+        MIN(m.igt) AS best_igt,
+
+        (
+            SELECT m2.run_id
+            FROM mapped_splits m2
+            WHERE m2.name = m.name
+            ORDER BY m2.igt, m2.rta
+            LIMIT 1
+        ) AS best_run_id
+
+    FROM mapped_splits m
+    GROUP BY m.name
+    ORDER BY best_igt
+    """
+
+    splits_rows = conn.execute(splits_query).fetchall()
+
+    return {
+        "overall": overall_stats,
+        "splits": [dict(row) for row in splits_rows],
+    }
+
+
+def fetch_monthly_activity_summary(
+    conn: sqlite3.Connection,
+) -> list[tuple[str, int, int]]:
+    query = """
+    SELECT
+      strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
+      COUNT(*) AS total,
+      SUM(is_completed) AS completed
+    FROM runs
+    GROUP BY month_start
+    ORDER BY month_start ASC
+    """
+
+    return conn.execute(query).fetchall()
