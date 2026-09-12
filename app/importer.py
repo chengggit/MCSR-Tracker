@@ -37,7 +37,9 @@ def import_world(full_world_dir: Path, instance_name: str, conn: Connection) -> 
         }
 
     filtered_record = filter_record(raw_record, instance_name, cheat_status["igt"])
-    save_to_db(filtered_record, conn)
+
+    with conn:
+        save_to_db(filtered_record, conn)
 
     return {
         "world_name": full_world_dir.name,
