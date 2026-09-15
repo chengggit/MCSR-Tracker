@@ -135,7 +135,7 @@ export const RunModal = {
       runData.is_completed ? msToTime(runData.final_rta) : "-";
 
     const splits = formatSplits(runData.timelines);
-    const pbSplits = formatSplits(pbData.timelines);
+    const pbSplits = pbData ? formatSplits(pbData.timelines) : [];
     const allSplits = allSplitsData.splits.filter((split) =>
       SPLITS_FILTER.has(split.name),
     );
@@ -151,7 +151,7 @@ export const RunModal = {
     const chartPbData = pbSplits.flatMap((m) =>
       SPLITS_FILTER.has(m.name) ? m.igt : [],
     );
-    chartPbData.push(pbData.final_igt);
+    if (pbData?.final_igt) chartPbData.push(pbData.final_igt);
 
     renderModalChart(chartRunData, chartPbData);
 
@@ -171,15 +171,20 @@ export const RunModal = {
       const tooltipText = `${prevLabel} ➔ ${split.actualName}`;
 
       const avgDeltaMs = split.igt - allSplits[i].avg_igt;
-      const pbDeltaMs = split.igt - pbSplits[i].igt;
+      const pbDeltaMs = pbSplits[i] ? split.igt - pbSplits[i].igt : null;
 
       row.querySelector(".modal-col-igt").textContent = msToTime(split.igt);
       row.querySelector(".modal-col-segment").textContent = msToTime(segmentMs);
       row.querySelector(".modal-col-avg").textContent = formatDelta(avgDeltaMs);
-      row.querySelector(".modal-col-pb").textContent = formatDelta(pbDeltaMs);
-
       row.querySelector(".modal-col-avg").classList.add(deltaClass(avgDeltaMs));
-      row.querySelector(".modal-col-pb").classList.add(deltaClass(pbDeltaMs));
+
+      const pbCol = row.querySelector(".modal-col-pb");
+      if (pbDeltaMs !== null) {
+        pbCol.textContent = formatDelta(pbDeltaMs);
+        pbCol.classList.add(deltaClass(pbDeltaMs));
+      } else {
+        pbCol.textContent = "-";
+      }
 
       if (split) {
         const tooltip = document.createElement("div");
@@ -189,6 +194,7 @@ export const RunModal = {
       }
     }
 
+    // Completion Row
     const endSplit = splits.find((s) => s.name === "enter_end");
     const completionRow = document.querySelector(
       `.modal-splits-row[data-split="completion"]`,
@@ -198,9 +204,9 @@ export const RunModal = {
       const completionSegmentMs = runData.final_igt - endSplit.igt;
       const completionAvgDeltaMs =
         runData.final_igt - allSplitsData.overall.avg_igt;
-      const completionPbDeltaMs = runData.final_igt - pbData.final_igt;
-
-      const tooltipText = "End Enter ➔ Finish";
+      const completionPbDeltaMs = pbData?.final_igt
+        ? runData.final_igt - pbData.final_igt
+        : null;
 
       completionRow.querySelector(".modal-col-igt").textContent = msToTime(
         runData.final_igt,
@@ -209,17 +215,20 @@ export const RunModal = {
         msToTime(completionSegmentMs);
       completionRow.querySelector(".modal-col-avg").textContent =
         formatDelta(completionAvgDeltaMs);
-      completionRow.querySelector(".modal-col-pb").textContent =
-        formatDelta(completionPbDeltaMs);
-
       completionRow
         .querySelector(".modal-col-avg")
         .classList.add(deltaClass(completionAvgDeltaMs));
-      completionRow
-        .querySelector(".modal-col-pb")
-        .classList.add(deltaClass(completionPbDeltaMs));
+
+      const completionPbCol = completionRow.querySelector(".modal-col-pb");
+      if (completionPbDeltaMs !== null) {
+        completionPbCol.textContent = formatDelta(completionPbDeltaMs);
+        completionPbCol.classList.add(deltaClass(completionPbDeltaMs));
+      } else {
+        completionPbCol.textContent = "-";
+      }
 
       const tooltip = document.createElement("div");
+      const tooltipText = "End Enter ➔ Finish";
       tooltip.className = "tooltip";
       tooltip.textContent = tooltipText;
       completionRow.querySelector(".modal-col-segment").appendChild(tooltip);
