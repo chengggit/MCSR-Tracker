@@ -1,4 +1,5 @@
 import { fetchMonthlyActivity } from "./api.js";
+import { msToTime } from "./helper.js";
 
 Chart.defaults.font.family = "JetBrains Mono";
 
@@ -173,7 +174,12 @@ function getBaseChartOptions() {
         },
       },
       y: {
-        ticks: { color: colors.mutedFG },
+        beginAtZero: true,
+        ticks: {
+          color: colors.mutedFG,
+          maxTicksLimit: 5,
+          callback: (value) => msToTime(value).split(".")[0],
+        },
         grace: "25%",
         border: { dash: [4, 4] },
         grid: {
@@ -192,6 +198,13 @@ function getBaseChartOptions() {
         caretSize: 0,
         borderWidth: 1,
         cornerRadius: 0,
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label || "";
+            const formattedTime = msToTime(context.parsed.y);
+            return `${label} ${formattedTime}`;
+          },
+        },
       },
       legend: { display: false },
     },
@@ -262,7 +275,7 @@ export function renderModalChart(runData, pbData) {
     "Blind",
     "Stronghold",
     "End Enter",
-    "Finish",
+    "Completion",
   ];
 
   const datasets = [
@@ -341,6 +354,8 @@ export async function renderActivityChart() {
     labels: { color: colors.mutedFG },
   };
   options.plugins.tooltip.bodyColor = colors.mutedFG;
+  options.scales.y.ticks.callback = undefined;
+  options.plugins.tooltip.callbacks = undefined;
 
   activityChartInstance = activityChart(canvas, labels, datasets, options);
 }
