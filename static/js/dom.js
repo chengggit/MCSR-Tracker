@@ -7,6 +7,7 @@ export function renderRecentRuns(runs) {
     const isCompleted = r.is_completed;
     const row = document.createElement("div");
     row.className = "recent-runs-row";
+    row.setAttribute("data-run-id", r.id);
 
     function makeCell(text) {
       const cell = document.createElement("span");
@@ -36,20 +37,25 @@ export function renderRecentRuns(runs) {
 }
 
 export function renderSplitsStats(stats) {
-  for (const split of stats) {
-    const row = document.querySelector(`[data-split="${split.name}"]`);
+  for (const split of stats.splits) {
+    const row = document.querySelector(
+      `.split-row[data-split="${split.name}"]`,
+    );
     if (!row) continue;
 
     row.querySelector(".split-avg").textContent = msToTime(split.avg_igt);
     row.querySelector(".split-best").textContent = msToTime(split.best_igt);
   }
-}
+  const completionRow = document.querySelector(
+    `.split-row[data-split="completion"]`,
+  );
 
-export function renderRunsStats(stats) {
-  const row = document.querySelector(`[data-split="completion"]`);
-
-  row.querySelector(".split-avg").textContent = msToTime(stats.avg_igt);
-  row.querySelector(".split-best").textContent = msToTime(stats.best_igt);
+  completionRow.querySelector(".split-avg").textContent = msToTime(
+    stats.overall.avg_igt,
+  );
+  completionRow.querySelector(".split-best").textContent = msToTime(
+    stats.overall.best_igt,
+  );
 }
 
 export function renderCards(stats) {

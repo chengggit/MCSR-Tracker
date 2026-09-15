@@ -103,17 +103,17 @@
               <span class="split-avg"></span>
               <span class="split-best"></span>
             </div>
-            <div class="split-row" data-split="enter_bastion">
-              <span>Bastion</span>
+            <div class="split-row" data-split="structure_1">
+              <span>Structure 1</span>
               <span class="split-avg"></span>
               <span class="split-best"></span>
             </div>
-            <div class="split-row" data-split="enter_fortress">
-              <span>Fortress</span>
+            <div class="split-row" data-split="structure_2">
+              <span>Structure 2</span>
               <span class="split-avg"></span>
               <span class="split-best"></span>
             </div>
-            <div class="split-row" data-split="nether_travel_blind">
+            <div class="split-row" data-split="nether_travel">
               <span>Nether Blind</span>
               <span class="split-avg"></span>
               <span class="split-best"></span>
@@ -161,6 +161,95 @@
         </div>
       </section>
     </div>
+
+    <div id="modal-container" class="modal-backdrop hidden">
+      <div class="modal">
+        <button id="modal-close-btn">✕</button>
+
+        <div class="modal-banner">
+          <div class="modal-banner-meta">
+            <h2 id="modal-banner-run">-</h2>
+            <span id="modal-banner-instance">-</span>
+            <span id="modal-banner-date">-</span>
+          </div>
+          <div class="modal-banner-time">
+            <span id="modal-banner-igt">-</span>
+            <span id="modal-banner-rta">-</span>
+          </div>
+        </div>
+
+        <div class="modal-chart-container chart-container">
+          <div class="chart-header">
+            <h2 class="chart-title panel-title">CUMULATIVE TIME vs PB</h2>
+          </div>
+          <canvas id="modal-chart"></canvas>
+        </div>
+
+        <div class="modal-splits-table">
+          <h2 class="modal-splits-title panel-title">SPLITS</h2>
+          <div class="modal-splits-header">
+            <span>Splits</span>
+            <span>IGT</span>
+            <span>Segments</span>
+            <span>vs Avg</span>
+            <span>vs PB</span>
+          </div>
+
+          <div class="modal-splits-body">
+            <div class="modal-splits-row" data-split="enter_nether">
+              <span class="modal-col-name">Nether Enter</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="structure_1">
+              <span class="modal-col-name">Structure 1</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="structure_2">
+              <span class="modal-col-name">Structure 2</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="nether_travel">
+              <span class="modal-col-name">Nether Blind</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_stronghold">
+              <span class="modal-col-name">Stronghold</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="enter_end">
+              <span class="modal-col-name">End Enter</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+            <div class="modal-splits-row" data-split="completion">
+              <span class="modal-col-name">Completion</span>
+              <span class="modal-col-igt"></span>
+              <span class="modal-col-segment"></span>
+              <span class="modal-col-avg"></span>
+              <span class="modal-col-pb"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js" type="module"></script>
   </body>
 </html>

@@ -1,66 +1,17 @@
-const apiUrl = "http://127.0.0.1:8000/api";
+const API_BASE = "/api";
 
-export async function fetchRecentRuns() {
-  try {
-    const response = await fetch(`${apiUrl}/runs?limit=8`);
+async function apiFetch(endpoint) {
+  const response = await fetch(`${API_BASE}${endpoint}`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.error(err);
+  if (!response.ok) {
+    throw new Error(`API Error [${response.status}]: ${response.statusText}`);
   }
+
+  return response.json();
 }
 
-export async function fetchSplitsStats() {
-  try {
-    const response = await fetch(`${apiUrl}/splits/stats`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-export async function fetchRunsStats() {
-  try {
-    const response = await fetch(`${apiUrl}/runs/stats`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-export async function fetchMonthlyActivity() {
-  try {
-    const response = await fetch(`${apiUrl}/activity/monthly`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return await response.json();
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-export async function fetchDashboardStats() {
-  try {
-    const response = await fetch(`${apiUrl}/stats`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return await response.json();
-  } catch (err) {
-    console.error(err);
-  }
-}
+export const fetchRecentRuns = (limit = 8) => apiFetch(`/runs?limit=${limit}`);
+export const fetchRunById = (runId) => apiFetch(`/runs/${runId}`);
+export const fetchDashboardStats = () => apiFetch("/stats/dashboard");
+export const fetchSplitsStats = () => apiFetch("/stats/splits");
+export const fetchMonthlyActivity = () => apiFetch("/activity/monthly");
