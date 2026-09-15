@@ -41,7 +41,7 @@ typecheck = "pyright"
 
 [tool.poe.tasks.dev]
 shell = """
-    uvicorn app.api:app --reload --reload-dir app --reload-dir static &
+    uvicorn app.api:app --reload --reload-dir app &
     npx browser-sync start --proxy localhost:8000 --files "static/**/*" --port 5500 --no-notify
 """
 
