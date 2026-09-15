@@ -141,11 +141,16 @@ export const RunModal = {
     );
 
     // Chart
-    const chartRunData = splits.map((m) => m.igt);
+    const chartRunData = splits.flatMap((m) =>
+      SPLITS_FILTER.has(m.name) ? m.igt : [],
+    );
     if (runData.is_completed === 1 && runData.final_igt) {
       chartRunData.push(runData.final_igt);
     }
-    const chartPbData = pbSplits.map((m) => m.igt);
+
+    const chartPbData = pbSplits.flatMap((m) =>
+      SPLITS_FILTER.has(m.name) ? m.igt : [],
+    );
     chartPbData.push(pbData.final_igt);
 
     renderModalChart(chartRunData, chartPbData);
@@ -153,6 +158,11 @@ export const RunModal = {
     // Table
     for (let i = 0; i < splits.length; i++) {
       const split = splits[i];
+
+      const row = document.querySelector(
+        `.modal-splits-row[data-split="${split.name}"]`,
+      );
+      if (!row) continue;
 
       const prevIgt = i === 0 ? 0 : splits[i - 1].igt;
       const prevLabel = i === 0 ? "Start" : splits[i - 1].actualName;
@@ -162,11 +172,6 @@ export const RunModal = {
 
       const avgDeltaMs = split.igt - allSplits[i].avg_igt;
       const pbDeltaMs = split.igt - pbSplits[i].igt;
-
-      const row = document.querySelector(
-        `.modal-splits-row[data-split="${split.name}"]`,
-      );
-      if (!row) continue;
 
       row.querySelector(".modal-col-igt").textContent = msToTime(split.igt);
       row.querySelector(".modal-col-segment").textContent = msToTime(segmentMs);
