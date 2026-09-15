@@ -5,11 +5,7 @@ import {
   fetchDashboardStats,
 } from "./js/api.js";
 
-import {
-  renderPerformanceChart,
-  renderModalChart,
-  renderActivityChart,
-} from "./js/chart.js";
+import { renderPerformanceChart, renderActivityChart } from "./js/chart.js";
 
 import {
   renderRecentRuns,
@@ -70,7 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const runData = await fetchRunById(runId);
       const allSplitsData = await fetchSplitsStats();
-      const pbRunData = await fetchRunById(473);
+
+      const pbRunId = allSplitsData.overall.pb_run_id;
+      const pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
 
       RunModal.open(runData, allSplitsData, pbRunData);
     } catch (err) {
