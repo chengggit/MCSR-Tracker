@@ -2,6 +2,30 @@ import { msToTime } from "./helper.js";
 
 const recentRunsBody = document.getElementById("recent-runs-body");
 
+export function renderCards(stats) {
+  const pb = document.getElementById("pb");
+  const improvement = document.getElementById("improvement");
+  const totalRuns = document.getElementById("total_runs");
+  const resets = document.getElementById("resets");
+
+  const daysAgo = Math.floor((Date.now() - new Date(stats.pb_date)) / 86400000);
+  const sub = daysAgo === 0 ? "TODAY!" : `${daysAgo} days ago`;
+
+  const improvementDelta = stats.first_completed_igt - stats.pb_igt;
+
+  pb.querySelector(".card-value").textContent = msToTime(stats.pb_igt);
+  pb.querySelector(".card-sub").textContent = sub;
+
+  improvement.querySelector(".card-value").textContent =
+    `-${msToTime(improvementDelta)}`;
+
+  totalRuns.querySelector(".card-value").textContent = stats.total_runs;
+  totalRuns.querySelector(".card-sub").textContent =
+    `${stats.finish_rate}% finish rate`;
+
+  resets.querySelector(".card-value").textContent = stats.resets;
+}
+
 export function renderRecentRuns(runs) {
   for (const r of runs) {
     const isCompleted = r.is_completed;
@@ -49,37 +73,14 @@ export function renderSplitsStats(stats) {
   const completionRow = document.querySelector(
     `.split-row[data-split="completion"]`,
   );
-
-  completionRow.querySelector(".split-avg").textContent = msToTime(
-    stats.overall.avg_igt,
-  );
-  completionRow.querySelector(".split-best").textContent = msToTime(
-    stats.overall.best_igt,
-  );
-}
-
-export function renderCards(stats) {
-  const pb = document.getElementById("pb");
-  const improvement = document.getElementById("improvement");
-  const totalRuns = document.getElementById("total_runs");
-  const resets = document.getElementById("resets");
-
-  const daysAgo = Math.floor((Date.now() - new Date(stats.pb_date)) / 86400000);
-  const sub = daysAgo === 0 ? "TODAY!" : `${daysAgo} days ago`;
-
-  const improvementDelta = stats.first_completed_igt - stats.pb_igt;
-
-  pb.querySelector(".card-value").textContent = msToTime(stats.pb_igt);
-  pb.querySelector(".card-sub").textContent = sub;
-
-  improvement.querySelector(".card-value").textContent =
-    `-${msToTime(improvementDelta)}`;
-
-  totalRuns.querySelector(".card-value").textContent = stats.total_runs;
-  totalRuns.querySelector(".card-sub").textContent =
-    `${stats.finish_rate}% finish rate`;
-
-  resets.querySelector(".card-value").textContent = stats.resets;
+  if (stats.overall.best_igt) {
+    completionRow.querySelector(".split-avg").textContent = msToTime(
+      stats.overall.avg_igt,
+    );
+    completionRow.querySelector(".split-best").textContent = msToTime(
+      stats.overall.best_igt,
+    );
+  }
 }
 
 export function renderDropdown(config) {
