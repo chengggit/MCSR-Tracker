@@ -1,3 +1,4 @@
+import json
 from enum import StrEnum
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
@@ -34,6 +35,12 @@ class Order(StrEnum):
 class RunTypes(StrEnum):
     set_seed = "set_seed"
     random_seed = "random_seed"
+
+
+@router.get("/config", responses={404: {"description": "Config not found"}})
+def get_config():
+    with open("config.json", encoding="utf-8") as f:
+        return json.load(f)
 
 
 # --- Single Run Endpoints ---

@@ -17,6 +17,25 @@ import { renderDropdown } from "./js/dropdown.js";
 
 import { RunModal } from "./js/modal.js";
 
+async function renderInstanceDropdown() {
+  const res = await fetch("api/config");
+  const config = await res.json();
+
+  const items = Object.keys(config.instances).map((name) => {
+    return {
+      name: name,
+      callback: () => {},
+    };
+  });
+  const instanceBtn = document.getElementById("instance-btn");
+  renderDropdown({
+    trigger: instanceBtn,
+    items: items,
+  });
+}
+
+renderInstanceDropdown();
+
 fetchDashboardStats()
   .then(renderCards)
   .catch((err) => {
@@ -34,21 +53,6 @@ fetchRecentRuns()
   .catch((err) => {
     console.error("Couldn't load recent runs:", err);
   });
-
-const instanceBtn = document.getElementById("instance-btn");
-renderDropdown({
-  trigger: instanceBtn,
-  items: [
-    {
-      name: "RSG",
-      callback: () => {},
-    },
-    {
-      name: "FSG",
-      callback: () => {},
-    },
-  ],
-});
 
 renderPerformanceChart();
 renderActivityChart();

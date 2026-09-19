@@ -16,12 +16,15 @@ export function renderDropdown(config) {
       item.callback();
       dropdown.style.display = "none";
       trigger.textContent = item.name.toUpperCase() + " ";
+
+      // add icon back if there's one
       if (chevron) trigger.appendChild(chevron.cloneNode(true));
     });
 
     dropdown.appendChild(option);
   }
 
+  // append dropdown div after trigger
   trigger.insertAdjacentElement("afterend", dropdown);
 
   trigger.addEventListener("click", (e) => {
