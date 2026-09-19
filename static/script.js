@@ -8,11 +8,12 @@ import {
 import { renderPerformanceChart, renderActivityChart } from "./js/chart.js";
 
 import {
+  renderCards,
   renderRecentRuns,
   renderSplitsStats,
-  renderCards,
-  renderDropdown,
-} from "./js/dom.js";
+} from "./js/dashboard.js";
+
+import { renderDropdown } from "./js/dropdown.js";
 
 import { RunModal } from "./js/modal.js";
 
@@ -52,6 +53,7 @@ renderDropdown({
 renderPerformanceChart();
 renderActivityChart();
 
+// Initialize and load RunModal
 document.addEventListener("DOMContentLoaded", () => {
   RunModal.init();
 
