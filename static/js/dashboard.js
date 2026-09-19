@@ -8,14 +8,17 @@ export function renderCards(stats) {
   const totalRuns = document.getElementById("total_runs");
   const resets = document.getElementById("resets");
 
-  const daysAgo = Math.floor((Date.now() - new Date(stats.pb_date)) / 86400000);
-  const sub = daysAgo === 0 ? "TODAY!" : `${daysAgo} days ago`;
+  let daysAgo = "-";
+  if (stats.pb_date) {
+    daysAgo = Math.floor((Date.now() - new Date(stats.pb_date)) / 86400000);
+  }
+  const pbIgt = stats.pb_igt ? msToTime(stats.pb_igt) : "-";
+  const pbSub = daysAgo === 0 ? "TODAY!" : `${daysAgo} days ago`;
+
+  pb.querySelector(".card-value").textContent = pbIgt;
+  pb.querySelector(".card-sub").textContent = pbSub;
 
   const improvementDelta = stats.first_completed_igt - stats.pb_igt;
-
-  pb.querySelector(".card-value").textContent = msToTime(stats.pb_igt);
-  pb.querySelector(".card-sub").textContent = sub;
-
   improvement.querySelector(".card-value").textContent =
     `-${msToTime(improvementDelta)}`;
 
