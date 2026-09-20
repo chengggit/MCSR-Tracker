@@ -5,7 +5,7 @@ import {
   fetchDashboardStats,
 } from "./js/api.js";
 
-import { renderPerformanceChart, renderActivityChart } from "./js/chart.js";
+import { renderActivityChart, renderPerformanceChart } from "./js/chart.js";
 
 import {
   renderCards,

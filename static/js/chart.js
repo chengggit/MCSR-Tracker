@@ -1,5 +1,5 @@
-import { fetchMonthlyActivity } from "./api.js";
-import { msToTime } from "./helper.js";
+import { fetchRecent12CompletedRuns, fetchMonthlyActivity } from "./api.js";
+import { msToTime, calculateRollingAvg5Series } from "./helper.js";
 
 Chart.defaults.font.family = "JetBrains Mono";
 
@@ -211,12 +211,36 @@ function getBaseChartOptions() {
   };
 }
 
-/* --- Renderers ---*/
+/* --- Helpers ---*/
 
 let performanceChartInstance = null;
-export function renderPerformanceChart() {
+export async function renderPerformanceChart() {
+  const ao5Element = document.getElementById("current-ao5");
   const canvas = document.getElementById("performance-chart");
   if (!canvas) return;
+
+  const runs = await fetchRecent12CompletedRuns();
+  if (!runs || runs.length === 0) return;
+
+  // 5 completed runs required
+  const latest5Runs = runs.slice(0, 5);
+  if (latest5Runs.length === 5) {
+    const avgMs = Math.round(
+      latest5Runs.reduce((sum, run) => sum + run.final_igt, 0) / 5,
+    );
+    if (ao5Element) ao5Element.textContent = msToTime(avgMs).split(".")[0];
+  } else if (ao5Element) {
+    ao5Element.textContent = "-";
+  }
+
+  // Reverse from descending to ascending so the chart go from oldest -> newest
+  const runsASC = runs.reverse();
+
+  const rawTimes = runsASC.map((run) => run.final_igt);
+  const labels = runsASC.map((run) => {
+    const match = run.world_name?.match(/#\d+/);
+    return match ? match[0] : run.world_name; // Fallback to full name if no '#' exists
+  });
 
   if (performanceChartInstance) performanceChartInstance.destroy();
 
@@ -228,11 +252,9 @@ export function renderPerformanceChart() {
 
   const colors = getThemeColors();
 
-  const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-  const mockData = [13, 12.3, 11.8, 11, 11.9, 10, 10.1, 11.1, 9.9, 9.6, 10.1];
   const datasets = [
     {
-      data: mockData,
+      data: rawTimes,
       borderColor: colors.primary,
       borderWidth: 2,
       pointRadius: 2,
@@ -245,12 +267,22 @@ export function renderPerformanceChart() {
     },
   ];
 
-  performanceChartInstance = lineChart(
-    canvas,
-    labels,
-    datasets,
-    getBaseChartOptions(),
-  );
+  const options = getBaseChartOptions();
+  options.scales.x.ticks.maxRotation = 0;
+
+  options.plugins.tooltip.callbacks = {
+    title: (tooltipItems) => {
+      const index = tooltipItems[0].dataIndex;
+      return runsASC[index]?.world_name || `Run #${index + 1}`;
+    },
+    label: (context) => {
+      const label = context.dataset.label || "";
+      const formattedTime = msToTime(context.parsed.y);
+      return `${label} ${formattedTime}`;
+    },
+  };
+
+  performanceChartInstance = lineChart(canvas, labels, datasets, options);
 }
 
 let modalChartInstance = null;
