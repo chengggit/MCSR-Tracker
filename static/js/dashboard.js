@@ -55,8 +55,8 @@ export function renderRecentRuns(runs) {
       row.appendChild(makeCell(msToTime(r.final_igt)));
       row.appendChild(makeCell(msToTime(r.final_rta)));
     } else {
-      row.appendChild(makeCell("--:--.---"));
-      row.appendChild(makeCell("--:--.---"));
+      row.appendChild(makeCell("-"));
+      row.appendChild(makeCell("-"));
     }
 
     recentRunsBody.appendChild(row);
