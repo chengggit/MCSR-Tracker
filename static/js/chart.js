@@ -1,5 +1,5 @@
 import { fetchRecent12CompletedRuns, fetchMonthlyActivity } from "./api.js";
-import { msToTime, calculateRollingAvg5Series } from "./helper.js";
+import { msToTime } from "./helper.js";
 
 Chart.defaults.font.family = "JetBrains Mono";
 
@@ -385,9 +385,26 @@ export async function renderActivityChart() {
     display: true,
     labels: { color: colors.mutedFG },
   };
-  options.plugins.tooltip.bodyColor = colors.mutedFG;
   options.scales.y.ticks.callback = undefined;
-  options.plugins.tooltip.callbacks = undefined;
 
+  options.plugins.tooltip.multiKeyBackground = "transparent";
+  options.plugins.tooltip.bodyColor = colors.mutedFG;
+
+  options.plugins.tooltip.callbacks = {
+    label: (context) => {
+      const label = context.dataset.label || "";
+      return `${label}: ${context.parsed.y}`; // raw number instead of 1,000
+    },
+    labelTextColor: (context) => {
+      return context.datasetIndex === 1 ? colors.primary : colors.mutedFG;
+    },
+    labelColor: (context) => {
+      return {
+        borderColor: "transparent",
+        backgroundColor:
+          context.datasetIndex === 1 ? colors.primary : colors.muted,
+      };
+    },
+  };
   activityChartInstance = activityChart(canvas, labels, datasets, options);
 }
