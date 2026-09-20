@@ -22,21 +22,3 @@ export function unixToDate(unixTime) {
     year: "numeric",
   });
 }
-
-/**
- * Takes an array of completed runs (sorted OLDEST to NEWEST)
- * and returns an array of rolling Avg5 values.
- * @param {Array} runs
- * @returns {Array<number|null>}
- * */
-export function calculateRollingAvg5Series(runs) {
-  return runs.map((_, index) => {
-    if (index < 4) return null;
-
-    // Grab the current run and 4 runs behind it
-    const window = runs.slice(index - 4, index + 1);
-    const sum = window.reduce((acc, curr) => acc + (curr.final_igt || 0), 0);
-
-    return Math.round(sum / 5);
-  });
-}
