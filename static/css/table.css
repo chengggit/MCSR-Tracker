@@ -14,7 +14,7 @@
 .split-row {
   display: grid;
   color: var(--muted-foreground);
-  font-size: var(--font-size-m);
+  font-size: var(--font-size-12);
   grid-template-columns: 2fr 1fr 1fr;
   gap: var(--gap-8);
   padding-block: var(--padding-8);
@@ -45,7 +45,7 @@
 .recent-runs-row {
   display: grid;
   color: var(--muted-foreground);
-  font-size: var(--font-size-m);
+  font-size: var(--font-size-12);
   grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: var(--gap-8);
   padding-block: var(--padding-8);

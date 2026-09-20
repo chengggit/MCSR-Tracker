@@ -19,17 +19,17 @@ body {
 
 h1 {
   font-family: var(--font-2);
-  font-size: var(--font-size-l);
+  font-size: var(--font-size-16);
   color: var(--foreground);
 }
 
 h3 {
-  font-size: var(--font-size-m);
+  font-size: var(--font-size-10);
 }
 
 .panel-title {
-  font-size: var(--font-size-m);
-  color: var(--foreground);
+  font-size: var(--font-size-12);
+  color: var(--muted-foreground);
 }
 
 .text-accent {
@@ -43,7 +43,7 @@ h3 {
 .text-footer {
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-m);
+  font-size: var(--font-size-12);
   padding-top: var(--padding-12);
   border-top: 1px solid var(--border);
   margin-top: var(--margin-4);
@@ -51,7 +51,7 @@ h3 {
 header {
   position: sticky;
   top: 0;
-  font-size: var(--font-size-s);
+  font-size: var(--font-size-8);
   background: rgba(from var(--card) r g b / 0.5);
   border-bottom: 1px solid var(--border);
   backdrop-filter: blur(8px);
@@ -64,7 +64,7 @@ header {
 
   .dropdown-item {
     font-family: var(--font-2);
-    font-size: var(--font-size-s);
+    font-size: var(--font-size-8);
     color: var(--foreground);
   }
 }
@@ -81,7 +81,7 @@ header {
 
 #instance-btn {
   font-family: var(--font-2);
-  font-size: var(--font-size-s);
+  font-size: var(--font-size-8);
   background: var(--secondary);
   color: var(--foreground);
   border: 1px solid var(--border);
@@ -114,7 +114,7 @@ header {
 }
 
 .dropdown-item {
-  font-size: var(--font-size-m);
+  font-size: var(--font-size-12);
   text-align: left;
   width: 100%;
   padding: var(--padding-8);
