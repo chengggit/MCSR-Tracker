@@ -192,17 +192,34 @@ def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
     }
 
 
-def fetch_monthly_activity_summary(
-    conn: sqlite3.Connection,
-) -> list[tuple[str, int, int]]:
-    query = """
+def fetch_monthly_activity_summary(conn: sqlite3.Connection) -> dict:
+    monthly_query = """
     SELECT
-      strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
-      COUNT(*) AS total,
-      SUM(is_completed) AS completed
+        strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
+        COUNT(*) AS total,
+        COALESCE(SUM(is_completed), 0) AS completions
     FROM runs
     GROUP BY month_start
-    ORDER BY month_start ASC
+    ORDER BY month_start DESC
+    LIMIT 6
     """
 
-    return conn.execute(query).fetchall()
+    yearly_query = """
+    SELECT
+        COUNT(*) AS yearly_attempts,
+        COALESCE(SUM(is_completed), 0) AS yearly_completions
+    FROM runs
+    WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')
+    """
+
+    rows = conn.execute(monthly_query).fetchall()
+    monthly = [dict(row) for row in reversed(rows)]
+
+    yearly_row = conn.execute(yearly_query).fetchone()
+    yearly = dict(yearly_row) if yearly_row else {}
+
+    return {
+        "monthly": monthly,
+        "yearly_attempts": yearly.get("yearly_attempts", 0),
+        "yearly_completions": yearly.get("yearly_completions", 0),
+    }
