@@ -203,6 +203,7 @@ function getBaseChartOptions() {
     },
     plugins: {
       tooltip: {
+        displayColors: false,
         titleColor: colors.mutedFG,
         bodyColor: colors.primary,
         backgroundColor: colors.popover,
@@ -210,6 +211,7 @@ function getBaseChartOptions() {
         caretSize: 0,
         borderWidth: 1,
         cornerRadius: 0,
+        multiKeyBackground: "transparent",
         callbacks: {
           label: (context) => {
             const label = context.dataset.label || "";
@@ -286,18 +288,14 @@ export function renderPerformanceChart(runs) {
       const index = tooltipItems[0].dataIndex;
       return runsASC[index]?.world_name || `Run #${index + 1}`;
     },
-    label: (context) => {
-      const label = context.dataset.label || "";
-      const formattedTime = msToTime(context.parsed.y);
-      return `${label} ${formattedTime}`;
-    },
+    label: (context) => msToTime(context.parsed.y),
   };
 
   performanceChartInstance = lineChart(canvas, labels, datasets, options);
 }
 
 let modalChartInstance = null;
-export function renderModalChart(runData, pbData) {
+export function renderModalChart(runSplits, pbSplits) {
   const canvas = document.getElementById("modal-chart");
   if (!canvas) return;
 
@@ -323,7 +321,8 @@ export function renderModalChart(runData, pbData) {
 
   const datasets = [
     {
-      data: runData,
+      label: "This Run",
+      data: runSplits,
       borderColor: colors.primary,
       borderWidth: 2,
       pointRadius: 2,
@@ -335,25 +334,30 @@ export function renderModalChart(runData, pbData) {
         createVerticalGradient(context, greenGradient),
     },
     {
-      data: pbData,
-      borderColor: colors.primary,
+      label: "PB Run",
+      data: pbSplits,
+      borderColor: colors.muted,
       borderWidth: 2,
       pointRadius: 2,
       pointHoverRadius: 3,
-      pointBackgroundColor: colors.primary,
+      pointBackgroundColor: colors.muted,
       tension: 0.2,
-      fill: true,
-      backgroundColor: (context) =>
-        createVerticalGradient(context, greenGradient),
     },
   ];
+  const options = getBaseChartOptions();
 
-  modalChartInstance = lineChart(
-    canvas,
-    labels,
-    datasets,
-    getBaseChartOptions(),
-  );
+  options.plugins.tooltip.callbacks = {
+    label: (context) => {
+      const label = context.dataset.label || "";
+      const formattedTime = msToTime(context.parsed.y);
+      return `${label}: ${formattedTime}`;
+    },
+    labelTextColor: (context) => {
+      return context.datasetIndex === 1 ? colors.mutedFG : colors.primary;
+    },
+  };
+
+  modalChartInstance = lineChart(canvas, labels, datasets, options);
 }
 
 let activityChartInstance = null;
@@ -425,9 +429,10 @@ export function renderMonthlyActivity(data) {
       },
     },
   };
+
+  // Override the default formatting for y axis
   options.scales.y.ticks.callback = undefined;
 
-  options.plugins.tooltip.multiKeyBackground = "transparent";
   options.plugins.tooltip.bodyColor = colors.mutedFG;
 
   options.plugins.tooltip.callbacks = {
@@ -437,13 +442,6 @@ export function renderMonthlyActivity(data) {
     },
     labelTextColor: (context) => {
       return context.datasetIndex === 1 ? colors.primary : colors.mutedFG;
-    },
-    labelColor: (context) => {
-      return {
-        borderColor: "transparent",
-        backgroundColor:
-          context.datasetIndex === 1 ? colors.primary : colors.muted,
-      };
     },
   };
   activityChartInstance = activityChart(canvas, labels, datasets, options);

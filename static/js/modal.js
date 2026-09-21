@@ -151,19 +151,19 @@ export const RunModal = {
     );
 
     // Chart
-    const chartRunData = splits.flatMap((m) =>
+    const chartRunSplits = splits.flatMap((m) =>
       SPLITS_FILTER.has(m.name) ? m.igt : [],
     );
     if (runData.is_completed === 1 && runData.final_igt) {
-      chartRunData.push(runData.final_igt);
+      chartRunSplits.push(runData.final_igt);
     }
 
-    const chartPbData = pbSplits.flatMap((m) =>
+    const chartPbSplits = pbSplits.flatMap((m) =>
       SPLITS_FILTER.has(m.name) ? m.igt : [],
     );
-    if (pbData?.final_igt) chartPbData.push(pbData.final_igt);
+    if (pbData?.final_igt) chartPbSplits.push(pbData.final_igt);
 
-    renderModalChart(chartRunData, chartPbData);
+    renderModalChart(chartRunSplits, chartPbSplits);
 
     // Table
     for (let i = 0; i < splits.length; i++) {
