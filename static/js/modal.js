@@ -75,7 +75,7 @@ export const RunModal = {
 
     if (!this.element) return;
 
-    this.closeBtn?.addEventListener("click", () => this.close());
+    this.closeBtn.addEventListener("click", () => this.close());
 
     this.element.addEventListener("click", (e) => {
       if (e.target === this.element) this.close();

@@ -5,7 +5,7 @@ export function renderDropdown(config) {
   dropdown.className = "dropdown";
   dropdown.style.display = "none";
 
-  const chevron = trigger.querySelector(".chevron-down");
+  const labelSpan = trigger.querySelector(".btn-text");
 
   for (const item of items) {
     const option = document.createElement("button");
@@ -15,10 +15,7 @@ export function renderDropdown(config) {
     option.addEventListener("click", () => {
       item.callback();
       dropdown.style.display = "none";
-      trigger.textContent = item.name.toUpperCase() + " ";
-
-      // add icon back if there's one
-      if (chevron) trigger.appendChild(chevron.cloneNode(true));
+      labelSpan.textContent = item.name.toUpperCase() + " ";
     });
 
     dropdown.appendChild(option);

@@ -1,4 +1,3 @@
-import { fetchRecent12CompletedRuns, fetchMonthlyActivity } from "./api.js";
 import { msToTime } from "./helper.js";
 
 Chart.defaults.font.family = "JetBrains Mono";
@@ -227,12 +226,11 @@ function getBaseChartOptions() {
 /* --- Helpers ---*/
 
 let performanceChartInstance = null;
-export async function renderPerformanceChart() {
+export function renderPerformanceChart(runs) {
   const ao5Element = document.getElementById("current-ao5");
   const canvas = document.getElementById("performance-chart");
   if (!canvas) return;
 
-  const runs = await fetchRecent12CompletedRuns();
   if (!runs || runs.length === 0) return;
 
   // 5 completed runs required
@@ -357,10 +355,10 @@ export function renderModalChart(runData, pbData) {
     getBaseChartOptions(),
   );
 }
+
 let activityChartInstance = null;
-export async function renderActivityChart() {
-  const data = await fetchMonthlyActivity();
-  if (!data?.monthly?.length) return;
+export function renderMonthlyActivity(data) {
+  if (!data.monthly.length) return;
 
   const { monthly, yearly_attempts, yearly_completions } = data;
 
