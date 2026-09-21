@@ -99,55 +99,115 @@ def fetch_runs(
 
 # --- Stats & Analytics Queries ---
 #
-def fetch_dashboard_stats(conn: sqlite3.Connection) -> dict:
-    stats_query = """
+def fetch_dashboard_stats(instance: str | None, conn: sqlite3.Connection) -> dict:
+    """
+    Fetches top-level dashboard metrics (total runs, completions, PB date, etc.)
+    and split reach counts.
+    Fetches across all instances if `instance` is None.
+    """
+
+    # --- Top-Level Summary Stats Query
+
+    if instance is None:
+        outer_where = ""
+        sub_where = "WHERE is_completed = 1"
+        stats_params = ()
+    else:
+        outer_where = "WHERE instance = ?"
+        sub_where = "WHERE is_completed = 1 AND instance = ?"
+        # Parameters match order: pb_date subquery, first_completed_igt subquery, outer query
+        stats_params = (instance, instance, instance)
+
+    stats_query = f"""
     SELECT
         COUNT(*) AS total_runs,
-        SUM(is_completed) AS completed_runs,
-        COUNT(*) - SUM(is_completed) AS resets,
-        ROUND(100.0 * SUM(is_completed) / COUNT(*), 1) AS finish_rate,
+        COALESCE(SUM(is_completed), 0) AS completed_runs,
+        COUNT(*) - COALESCE(SUM(is_completed), 0) AS resets,
+        ROUND(100.0 * COALESCE(SUM(is_completed), 0) / NULLIF(COUNT(*), 0), 1) AS finish_rate,
         MIN(CASE WHEN is_completed = 1 THEN final_igt END) AS pb_igt,
 
-        (SELECT date FROM runs WHERE is_completed = 1 ORDER BY final_igt ASC LIMIT 1) AS pb_date,
-        (SELECT final_igt FROM runs WHERE is_completed = 1 ORDER BY id ASC LIMIT 1) AS first_completed_igt
+        -- PB Date
+        (SELECT date FROM runs {sub_where} ORDER BY final_igt ASC, final_rta ASC LIMIT 1) AS pb_date,
+
+        -- Final IGT of the very first completed run
+        (SELECT final_igt FROM runs {sub_where} ORDER BY id ASC LIMIT 1) AS first_completed_igt
 
     FROM runs
+    {outer_where}
     """
-    stats = dict(conn.execute(stats_query).fetchone())
 
-    split_reach_query = """
-    SELECT name, COUNT(DISTINCT run_id) AS runs_reached
-    FROM timelines
-    GROUP BY name
+    row = conn.execute(stats_query, stats_params).fetchone()
+    stats = dict(row) if row else {}
+
+    # --- Split Reach Count Query
+
+    if instance is None:
+        reach_where = ""
+        reach_params = ()
+    else:
+        reach_where = "WHERE r.instance = ?"
+        reach_params = (instance,)
+
+    split_reach_query = f"""
+    SELECT t.name, COUNT(DISTINCT t.run_id) AS runs_reached
+    FROM timelines t
+    JOIN runs r ON t.run_id = r.id
+    {reach_where}
+    GROUP BY t.name
     ORDER BY runs_reached DESC
     """
-    rows = conn.execute(split_reach_query).fetchall()
+
+    rows = conn.execute(split_reach_query, reach_params).fetchall()
     stats["split_reach"] = {row["name"]: row["runs_reached"] for row in rows}
 
     return stats
 
 
-def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
-    # Fetch overall completed run stats
-    overall_query = """
+def fetch_splits_stats(instance: str | None, conn: sqlite3.Connection) -> dict:
+    """
+    Fetches average/best times and best-run IDs for completed runs and individual splits.
+    Fetches across all instances if `instance` is None.
+
+    Maps Bastion/Fortress entries to 'structure_1' and 'structure_2'
+    chronologically per run so split averages aren't skewed by entry order.
+    """
+
+    if instance is None:
+        overall_where = "is_completed = 1"
+        overall_params = ()
+    else:
+        overall_where = "is_completed = 1 AND instance = ?"
+        overall_params = (instance, instance)
+
+    overall_query = f"""
     SELECT
         ROUND(AVG(r.final_igt)) AS avg_igt,
         MIN(r.final_igt) AS best_igt,
 
         (SELECT r2.id FROM runs r2
-         WHERE r2.is_completed = 1
+         WHERE {overall_where}
          ORDER BY r2.final_igt, r2.final_rta
          LIMIT 1) AS pb_run_id
 
     FROM runs r
-    WHERE is_completed = 1
+    WHERE {overall_where}
     """
 
-    overall_row = conn.execute(overall_query).fetchone()
+    overall_row = conn.execute(overall_query, overall_params).fetchone()
     overall_stats = dict(overall_row) if overall_row else {}
 
-    # Fetch split by split stats
-    splits_query = """
+    if instance is None:
+        splits_where = ""
+        splits_params = ()
+    else:
+        splits_where = "WHERE r.instance = ?"
+        splits_params = (instance,)
+
+    splits_query = f"""
+
+    -- STRUCTURE NORMALIZATION CTE:
+    -- Normalize bastion/fortress entries to structure_1/2 to whichever is first
+
     WITH mapped_splits AS (
         SELECT
             t.run_id,
@@ -164,8 +224,12 @@ def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
                 ELSE t.name
             END AS name
         FROM timelines t
+        JOIN runs r ON t.run_id = r.id
+        {splits_where}
     )
 
+
+    -- Subquery to find the run ID that achieved the fastest time for this specific split.
     SELECT
         m.name,
         ROUND(AVG(m.igt)) AS avg_igt,
@@ -184,7 +248,7 @@ def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
     ORDER BY best_igt
     """
 
-    splits_rows = conn.execute(splits_query).fetchall()
+    splits_rows = conn.execute(splits_query, splits_params).fetchall()
 
     return {
         "overall": overall_stats,
@@ -192,30 +256,57 @@ def fetch_splits_stats(conn: sqlite3.Connection) -> dict:
     }
 
 
-def fetch_monthly_activity_summary(conn: sqlite3.Connection) -> dict:
-    monthly_query = """
+def fetch_monthly_activity_summary(
+    instance: str | None, conn: sqlite3.Connection
+) -> dict:
+    """
+    Fetches monthly attempt/completion activity (last 6 months) and current year's totals.
+    Fetches across all instances if `instance` is None.
+    """
+
+    if instance is None:
+        monthly_where = ""
+        monthly_params = ()
+    else:
+        monthly_where = "WHERE instance = ?"
+        monthly_params = (instance,)
+
+    monthly_query = f"""
     SELECT
+        -- Convert millisecond timestamp to 'YYYY-MM-01' format
+
         strftime('%Y-%m-01', date / 1000, 'unixepoch') AS month_start,
         COUNT(*) AS total,
         COALESCE(SUM(is_completed), 0) AS completions
     FROM runs
+    {monthly_where}
     GROUP BY month_start
     ORDER BY month_start DESC
     LIMIT 6
     """
 
-    yearly_query = """
+    monthly_row = conn.execute(monthly_query, monthly_params).fetchall()
+    # Reverse to return chronologically (oldest to newest for the chart)
+    monthly = [dict(row) for row in reversed(monthly_row)]
+
+    if instance is None:
+        yearly_where = (
+            "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')"
+        )
+        yearly_params = ()
+    else:
+        yearly_where = "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now') AND instance = ?"
+        yearly_params = (instance,)
+
+    yearly_query = f"""
     SELECT
         COUNT(*) AS yearly_attempts,
         COALESCE(SUM(is_completed), 0) AS yearly_completions
     FROM runs
-    WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')
+    {yearly_where}
     """
 
-    rows = conn.execute(monthly_query).fetchall()
-    monthly = [dict(row) for row in reversed(rows)]
-
-    yearly_row = conn.execute(yearly_query).fetchone()
+    yearly_row = conn.execute(yearly_query, yearly_params).fetchone()
     yearly = dict(yearly_row) if yearly_row else {}
 
     return {
