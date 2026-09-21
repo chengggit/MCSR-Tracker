@@ -1,6 +1,5 @@
 import { msToTime } from "./helper.js";
-
-const recentRunsBody = document.getElementById("recent-runs-body");
+import { renderTable } from "./table.js";
 
 export function renderCards(stats) {
   const pb = document.getElementById("pb");
@@ -30,37 +29,37 @@ export function renderCards(stats) {
 }
 
 export function renderRecentRuns(runs) {
-  for (const r of runs) {
-    const isCompleted = r.is_completed;
-    const row = document.createElement("div");
-    row.className = "recent-runs-row";
-    row.setAttribute("data-run-id", r.id);
+  const container = document.getElementById("recent-runs-body");
+  if (!container || !runs) return;
 
-    function makeCell(text) {
-      const cell = document.createElement("span");
-      cell.className = "cell";
-      cell.textContent = text;
-      return cell;
-    }
-
-    const date = new Date(r.date).toLocaleString("en-US", {
+  const runIds = runs.map((r) => r.id);
+  const worldNames = runs.map((r) => r.world_name ?? "Unknown");
+  const dates = runs.map((r) =>
+    new Date(r.date).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
-    });
+    }),
+  );
+  const igts = runs.map((r) =>
+    r.is_completed === 1 ? msToTime(r.final_igt) : "-",
+  );
+  const rtas = runs.map((r) =>
+    r.is_completed === 1 ? msToTime(r.final_rta) : "-",
+  );
 
-    row.appendChild(makeCell(r.world_name));
-    row.appendChild(makeCell(date));
-
-    if (isCompleted === 1) {
-      row.appendChild(makeCell(msToTime(r.final_igt)));
-      row.appendChild(makeCell(msToTime(r.final_rta)));
-    } else {
-      row.appendChild(makeCell("-"));
-      row.appendChild(makeCell("-"));
-    }
-
-    recentRunsBody.appendChild(row);
-  }
+  renderTable({
+    container,
+    rowConfig: {
+      className: "recent-runs-row",
+      getAttrs: (i) => `data-run-id="${runIds[i]}"`,
+    },
+    columns: [
+      { key: "world", className: "cell-world", values: worldNames },
+      { key: "date", className: "cell-date", values: dates },
+      { key: "igt", className: "cell-igt", values: igts },
+      { key: "rta", className: "cell-rta", values: rtas },
+    ],
+  });
 }
 
 export function renderSplitsStats(stats) {
