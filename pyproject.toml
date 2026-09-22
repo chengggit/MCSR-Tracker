@@ -1,6 +1,6 @@
 [project]
 name = "mcsr-tracker"
-version = "0.1.0"
+version = "1.0.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -41,8 +41,8 @@ typecheck = "pyright"
 
 [tool.poe.tasks.dev]
 shell = """
-    uvicorn app.api:app --reload --reload-dir app &
-    npx browser-sync start --proxy localhost:8000 --files "static/**/*" --port 5500 --no-notify
+    uvicorn mcsr.app.api:app --reload --reload-dir src/mcsr/app &
+    npx browser-sync start --proxy localhost:8000 --files "src/mcsr/static/**/*" --port 5500 --no-notify
 """
 
 [tool.ruff]
@@ -60,12 +60,22 @@ select = [
 ignore = ["E501"]  # line too long
 
 [tool.ruff.lint.isort]
-known-first-party = ["app"]
+known-first-party = ["mcsr"]
 
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "standard"
-include = ["app", "main.py", "setup.py"]
+include = ["src/mcsr"]
 exclude = ["__pycache__", ".*", ".venv", "data", "**/node_modules"]
 venvPath = "."
 venv = ".venv"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcsr"]
+
+[project.scripts]
+mcsr = "mcsr.__main__:main"
