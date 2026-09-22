@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def get_data_dir() -> Path:
-    data_dir = Path.home() / ".local" / "share" / "mcsr"
+    data_dir = Path.home() / ".local" / "share" / "mcsr-tracker"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 

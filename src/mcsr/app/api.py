@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from mcsr.app.db import get_db
+from mcsr.app.paths import get_config_path
 from mcsr.app.runs import (
     fetch_dashboard_stats,
     fetch_monthly_activity_summary,
@@ -15,8 +16,6 @@ from mcsr.app.runs import (
     fetch_runs,
     fetch_splits_stats,
 )
-
-from mcsr.app.paths import get_config_path
 
 router = APIRouter(prefix="/api")
 
