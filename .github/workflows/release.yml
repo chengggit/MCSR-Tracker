@@ -40,3 +40,4 @@ jobs:
             dist/checksums.sha256 \
             --draft \
             --title "$GITHUB_REF_NAME"
+            --notes-file ".github/releases/$GITHUB_REF_NAME.md"
