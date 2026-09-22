@@ -15,6 +15,7 @@ dependencies = [
     "fastapi==0.137.1",
     "h11==0.16.0",
     "idna==3.18",
+    "packaging>=26.3",
     "prompt-toolkit==3.0.52",
     "pydantic==2.13.4",
     "pydantic-core==2.46.4",
