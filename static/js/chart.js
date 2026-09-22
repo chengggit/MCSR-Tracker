@@ -1,4 +1,3 @@
-import { fetchMonthlyActivity } from "./api.js";
 import { msToTime } from "./helper.js";
 
 Chart.defaults.font.family = "JetBrains Mono";
@@ -52,6 +51,18 @@ const ACTIVITY_HIGHLIGHT_PLUGIN = {
       chartArea.bottom - chartArea.top,
     );
     ctx.restore();
+  },
+};
+
+// Plugin to add bottom margin below the legend
+const LEGEND_MARGIN_PLUGIN = {
+  id: "legendMargin",
+  beforeInit(chart) {
+    const originalFit = chart.legend.fit;
+    chart.legend.fit = function fit() {
+      originalFit.bind(this)();
+      this.height += 16;
+    };
   },
 };
 
@@ -128,13 +139,13 @@ function activityChart(canvasElement, labels, datasets, options = {}) {
       datasets: datasets,
     },
     options: options,
-    plugins: [ACTIVITY_HIGHLIGHT_PLUGIN],
+    plugins: [ACTIVITY_HIGHLIGHT_PLUGIN, LEGEND_MARGIN_PLUGIN],
   });
 }
 
 /**
  * Get the current CSS theme variables with fallback values.
- * @returns {{ primary: string, muted: string, border: string, mutedFG: string, popover: string }}
+ * @returns {{ primary: string, muted: string, border: string, primaryFG: string, mutedFG: string, popover: string }}
  */
 function getThemeColors() {
   const style = getComputedStyle(document.documentElement);
@@ -144,6 +155,7 @@ function getThemeColors() {
     muted: style.getPropertyValue("--chart-3").trim() || "#1e2e1e",
     border:
       style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
+    primaryFG: style.getPropertyValue("--foreground").trim() || "#d4e8c2",
     mutedFG: style.getPropertyValue("--muted-foreground").trim() || "#6a8a5a",
     popover: style.getPropertyValue("--popover").trim() || "#111911",
   };
@@ -191,6 +203,7 @@ function getBaseChartOptions() {
     },
     plugins: {
       tooltip: {
+        displayColors: false,
         titleColor: colors.mutedFG,
         bodyColor: colors.primary,
         backgroundColor: colors.popover,
@@ -198,6 +211,7 @@ function getBaseChartOptions() {
         caretSize: 0,
         borderWidth: 1,
         cornerRadius: 0,
+        multiKeyBackground: "transparent",
         callbacks: {
           label: (context) => {
             const label = context.dataset.label || "";
@@ -211,12 +225,35 @@ function getBaseChartOptions() {
   };
 }
 
-/* --- Renderers ---*/
+/* --- Helpers ---*/
 
 let performanceChartInstance = null;
-export function renderPerformanceChart() {
+export function renderPerformanceChart(runs) {
+  const ao5Element = document.getElementById("current-ao5");
   const canvas = document.getElementById("performance-chart");
   if (!canvas) return;
+
+  if (!runs || runs.length === 0) return;
+
+  // 5 completed runs required
+  const latest5Runs = runs.slice(0, 5);
+  if (latest5Runs.length === 5) {
+    const avgMs = Math.round(
+      latest5Runs.reduce((sum, run) => sum + run.final_igt, 0) / 5,
+    );
+    if (ao5Element) ao5Element.textContent = msToTime(avgMs).split(".")[0];
+  } else if (ao5Element) {
+    ao5Element.textContent = "-";
+  }
+
+  // Reverse from descending to ascending so the chart go from oldest -> newest
+  const runsASC = runs.reverse();
+
+  const rawTimes = runsASC.map((run) => run.final_igt);
+  const labels = runsASC.map((run) => {
+    const match = run.world_name?.match(/#\d+/);
+    return match ? match[0] : run.world_name; // Fallback to full name if no '#' exists
+  });
 
   if (performanceChartInstance) performanceChartInstance.destroy();
 
@@ -228,11 +265,9 @@ export function renderPerformanceChart() {
 
   const colors = getThemeColors();
 
-  const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-  const mockData = [13, 12.3, 11.8, 11, 11.9, 10, 10.1, 11.1, 9.9, 9.6, 10.1];
   const datasets = [
     {
-      data: mockData,
+      data: rawTimes,
       borderColor: colors.primary,
       borderWidth: 2,
       pointRadius: 2,
@@ -245,16 +280,22 @@ export function renderPerformanceChart() {
     },
   ];
 
-  performanceChartInstance = lineChart(
-    canvas,
-    labels,
-    datasets,
-    getBaseChartOptions(),
-  );
+  const options = getBaseChartOptions();
+  options.scales.x.ticks.maxRotation = 0;
+
+  options.plugins.tooltip.callbacks = {
+    title: (tooltipItems) => {
+      const index = tooltipItems[0].dataIndex;
+      return runsASC[index]?.world_name || `Run #${index + 1}`;
+    },
+    label: (context) => msToTime(context.parsed.y),
+  };
+
+  performanceChartInstance = lineChart(canvas, labels, datasets, options);
 }
 
 let modalChartInstance = null;
-export function renderModalChart(runData, pbData) {
+export function renderModalChart(runSplits, pbSplits) {
   const canvas = document.getElementById("modal-chart");
   if (!canvas) return;
 
@@ -280,7 +321,8 @@ export function renderModalChart(runData, pbData) {
 
   const datasets = [
     {
-      data: runData,
+      label: "This Run",
+      data: runSplits,
       borderColor: colors.primary,
       borderWidth: 2,
       pointRadius: 2,
@@ -292,31 +334,48 @@ export function renderModalChart(runData, pbData) {
         createVerticalGradient(context, greenGradient),
     },
     {
-      data: pbData,
-      borderColor: colors.primary,
+      label: "PB Run",
+      data: pbSplits,
+      borderColor: colors.muted,
       borderWidth: 2,
       pointRadius: 2,
       pointHoverRadius: 3,
-      pointBackgroundColor: colors.primary,
+      pointBackgroundColor: colors.muted,
       tension: 0.2,
-      fill: true,
-      backgroundColor: (context) =>
-        createVerticalGradient(context, greenGradient),
     },
   ];
+  const options = getBaseChartOptions();
 
-  modalChartInstance = lineChart(
-    canvas,
-    labels,
-    datasets,
-    getBaseChartOptions(),
-  );
+  options.plugins.tooltip.callbacks = {
+    label: (context) => {
+      const label = context.dataset.label || "";
+      const formattedTime = msToTime(context.parsed.y);
+      return `${label}: ${formattedTime}`;
+    },
+    labelTextColor: (context) => {
+      return context.datasetIndex === 1 ? colors.mutedFG : colors.primary;
+    },
+  };
+
+  modalChartInstance = lineChart(canvas, labels, datasets, options);
 }
 
 let activityChartInstance = null;
-export async function renderActivityChart() {
-  const months = await fetchMonthlyActivity();
-  if (!months || !months.length) return;
+export function renderMonthlyActivity(data) {
+  if (!data.monthly.length) return;
+
+  const { monthly, yearly_attempts, yearly_completions } = data;
+
+  const attemptsElement = document.getElementById("yearly_attempts");
+  const completionsElement = document.getElementById("yearly_completions");
+
+  if (attemptsElement && yearly_attempts !== undefined) {
+    attemptsElement.textContent = `${yearly_attempts} runs this year`;
+  }
+
+  if (completionsElement && yearly_completions !== undefined) {
+    completionsElement.textContent = `${yearly_completions} completions`;
+  }
 
   const canvas = document.getElementById("activity-chart");
   if (!canvas) return;
@@ -326,7 +385,7 @@ export async function renderActivityChart() {
   const colors = getThemeColors();
 
   // format to 3-letter month shorthand
-  const labels = months.map((m) =>
+  const labels = monthly.map((m) =>
     new Date(m.month_start + "T00:00:00").toLocaleString("en-US", {
       month: "short",
       year: "numeric",
@@ -335,13 +394,13 @@ export async function renderActivityChart() {
   const datasets = [
     {
       label: "Attempts",
-      data: months.map((m) => m.total),
+      data: monthly.map((m) => m.total),
       backgroundColor: colors.muted,
       borderWidth: 0,
     },
     {
-      label: "Finished Run",
-      data: months.map((m) => m.completed),
+      label: "Completions",
+      data: monthly.map((m) => m.completions),
       backgroundColor: colors.primary,
       borderWidth: 0,
     },
@@ -351,11 +410,39 @@ export async function renderActivityChart() {
   options.maintainAspectRatio = true;
   options.plugins.legend = {
     display: true,
-    labels: { color: colors.mutedFG },
-  };
-  options.plugins.tooltip.bodyColor = colors.mutedFG;
-  options.scales.y.ticks.callback = undefined;
-  options.plugins.tooltip.callbacks = undefined;
+    align: "start",
+    labels: {
+      boxWidth: 10,
+      boxHeight: 10,
+      usePointStyle: true,
+      pointStyle: "rect",
 
+      // Custom text colors per legend label
+      generateLabels: (chart) => {
+        const labels =
+          Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        return labels.map((item) => {
+          item.fontColor =
+            item.datasetIndex === 1 ? colors.primaryFG : colors.mutedFG;
+          return item;
+        });
+      },
+    },
+  };
+
+  // Override the default formatting for y axis
+  options.scales.y.ticks.callback = undefined;
+
+  options.plugins.tooltip.bodyColor = colors.mutedFG;
+
+  options.plugins.tooltip.callbacks = {
+    label: (context) => {
+      const label = context.dataset.label || "";
+      return `${label}: ${context.parsed.y}`; // raw number instead of 1,000
+    },
+    labelTextColor: (context) => {
+      return context.datasetIndex === 1 ? colors.primary : colors.mutedFG;
+    },
+  };
   activityChartInstance = activityChart(canvas, labels, datasets, options);
 }

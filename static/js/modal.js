@@ -17,6 +17,11 @@ const SPLITS_FILTER = new Set([
   "enter_end",
 ]);
 
+/* *
+ * Turn raw-splits to a standardized one that's used to compare
+ * with other runs' splits, and filter out the unused split.
+ * This is to prevent wrong comparison for any run that's fort first.
+ * */
 function formatSplits(rawSplits) {
   if (!rawSplits || rawSplits.length === 0) return [];
 
@@ -56,6 +61,9 @@ function deltaClass(deltaMs) {
   return deltaMs <= 0 ? "delta-ahead" : "delta-behind";
 }
 
+/* *
+ * init, open, close and load modal for a run
+ * */
 export const RunModal = {
   element: null,
   closeBtn: null,
@@ -67,7 +75,7 @@ export const RunModal = {
 
     if (!this.element) return;
 
-    this.closeBtn?.addEventListener("click", () => this.close());
+    this.closeBtn.addEventListener("click", () => this.close());
 
     this.element.addEventListener("click", (e) => {
       if (e.target === this.element) this.close();
@@ -78,6 +86,7 @@ export const RunModal = {
     });
   },
 
+  // open and load modal if runData exist
   open(runData, allSplitsData, pbData) {
     if (!this.element) return;
 
@@ -118,6 +127,7 @@ export const RunModal = {
     });
   },
 
+  // load runData
   populate(runData, allSplitsData, pbData) {
     this.resetRows();
 
@@ -141,19 +151,19 @@ export const RunModal = {
     );
 
     // Chart
-    const chartRunData = splits.flatMap((m) =>
+    const chartRunSplits = splits.flatMap((m) =>
       SPLITS_FILTER.has(m.name) ? m.igt : [],
     );
     if (runData.is_completed === 1 && runData.final_igt) {
-      chartRunData.push(runData.final_igt);
+      chartRunSplits.push(runData.final_igt);
     }
 
-    const chartPbData = pbSplits.flatMap((m) =>
+    const chartPbSplits = pbSplits.flatMap((m) =>
       SPLITS_FILTER.has(m.name) ? m.igt : [],
     );
-    if (pbData?.final_igt) chartPbData.push(pbData.final_igt);
+    if (pbData?.final_igt) chartPbSplits.push(pbData.final_igt);
 
-    renderModalChart(chartRunData, chartPbData);
+    renderModalChart(chartRunSplits, chartPbSplits);
 
     // Table
     for (let i = 0; i < splits.length; i++) {
@@ -164,12 +174,14 @@ export const RunModal = {
       );
       if (!row) continue;
 
+      // Split before the current one
       const prevIgt = i === 0 ? 0 : splits[i - 1].igt;
       const prevLabel = i === 0 ? "Start" : splits[i - 1].actualName;
 
       const segmentMs = split.igt - prevIgt;
       const tooltipText = `${prevLabel} ➔ ${split.actualName}`;
 
+      // Avg and Best comparison
       const avgDeltaMs = split.igt - allSplits[i].avg_igt;
       const pbDeltaMs = pbSplits[i] ? split.igt - pbSplits[i].igt : null;
 

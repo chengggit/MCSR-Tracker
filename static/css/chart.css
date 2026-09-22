@@ -31,19 +31,19 @@
   }
 }
 
-.ravg {
+.rolling-avg {
   display: flex;
   flex-direction: column;
   text-align: right;
 
   span {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-12);
     color: var(--muted-foreground);
   }
 }
 
-.ravg .ravg-number {
-  font-size: var(--font-size-l);
+.rolling-avg #current-ao5 {
+  font-size: var(--font-size-16);
   font-weight: 800;
   color: var(--accent);
 }

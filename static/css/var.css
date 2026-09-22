@@ -2,9 +2,10 @@
   --font-1: "JetBrains Mono", monospace;
   --font-2: "Press Start 2P";
 
-  --font-size-s: 8px;
-  --font-size-m: 12px;
-  --font-size-l: 16px;
+  --font-size-8: 8px;
+  --font-size-10: 10px;
+  --font-size-12: 12px;
+  --font-size-16: 16px;
 
   --font-400: 400;
   --font-500: 500;

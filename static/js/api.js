@@ -10,8 +10,46 @@ async function apiFetch(endpoint) {
   return response.json();
 }
 
-export const fetchRecentRuns = (limit = 8) => apiFetch(`/runs?limit=${limit}`);
+/**
+ * Helper to build query strings while ignoring null/undefined values
+ */
+function buildQuery(params = {}) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      query.append(key, value);
+    }
+  });
+  const queryString = query.toString();
+  return queryString ? `?${queryString}` : "";
+}
+
+/**
+ * Fetch runs with flexible query parameters for GET /runs endpoint.
+ * @param {Object} params - Query params (instance, run_type, version, completed, limit, offset, sort_by, order)
+ */
+function fetchRuns(params = {}) {
+  return apiFetch(`/runs${buildQuery(params)}`);
+}
+
+/* --- Helpers --- */
 export const fetchRunById = (runId) => apiFetch(`/runs/${runId}`);
-export const fetchDashboardStats = () => apiFetch("/stats/dashboard");
-export const fetchSplitsStats = () => apiFetch("/stats/splits");
-export const fetchMonthlyActivity = () => apiFetch("/activity/monthly");
+
+export const fetchRecentRuns = (instance = null, limit = 8) =>
+  fetchRuns({ instance, limit });
+
+export const fetchDashboardStats = (instance = null) =>
+  apiFetch(`/stats/dashboard${buildQuery({ instance })}`);
+
+export const fetchSplitsStats = (instance = null) =>
+  apiFetch(`/stats/splits${buildQuery({ instance })}`);
+
+export const fetchMonthlyActivity = (instance = null) =>
+  apiFetch(`/activity/monthly${buildQuery({ instance })}`);
+
+export const fetchRecent12CompletedRuns = (instance = null) =>
+  fetchRuns({
+    instance: instance,
+    completed: true,
+    limit: 12,
+  });

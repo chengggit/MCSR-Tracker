@@ -1,3 +1,4 @@
+import json
 from enum import StrEnum
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
@@ -34,6 +35,12 @@ class Order(StrEnum):
 class RunTypes(StrEnum):
     set_seed = "set_seed"
     random_seed = "random_seed"
+
+
+@router.get("/config", responses={404: {"description": "Config not found"}})
+def get_config():
+    with open("config.json", encoding="utf-8") as f:
+        return json.load(f)
 
 
 # --- Single Run Endpoints ---
@@ -97,21 +104,21 @@ def get_runs(
 # --- Stats & Analytics Endpoints ---
 #
 @router.get("/stats/dashboard")
-def get_dashboard_stats(conn=Depends(get_db)):
+def get_dashboard_stats(instance: str | None = None, conn=Depends(get_db)):
     """Fetch aggregated dashboard summary stats (counts, rates, PB, split reach)."""
-    return fetch_dashboard_stats(conn)
+    return fetch_dashboard_stats(instance, conn)
 
 
 @router.get("/stats/splits")
-def get_splits_stats(conn=Depends(get_db)):
+def get_splits_stats(instance: str | None = None, conn=Depends(get_db)):
     """Fetch combined overall run timing averages along with per-split stats."""
-    return fetch_splits_stats(conn)
+    return fetch_splits_stats(instance, conn)
 
 
 @router.get("/activity/monthly")
-def get_monthly_activity(conn=Depends(get_db)):
+def get_monthly_activity(instance: str | None = None, conn=Depends(get_db)):
     """Fetch monthly run counts and completion breakdown for activity charts."""
-    return fetch_monthly_activity_summary(conn)
+    return fetch_monthly_activity_summary(instance, conn)
 
 
 # --- App Init ---

@@ -13,7 +13,7 @@
         <h1>MCSR Tracker</h1>
         <div class="dropdown-container">
           <button id="instance-btn">
-            RSG
+            <span class="btn-text"></span>
             <!-- prettier-ignore -->
             <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 9L12 15L18 9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
           </button>
@@ -73,17 +73,16 @@
           </div>
         </div>
       </section>
-      <!-- Chart -->
       <section class="performance">
         <div class="chart-container">
           <div class="chart-header">
             <div class="chart-label">
               <h2 class="chart-title panel-title">PERFORMANCE CHART</h2>
-              <h3 class="chart-sub">Any% RSG</h3>
+              <h3 class="chart-sub">12 Completed Runs</h3>
             </div>
-            <div class="ravg">
-              <span class="ravg-number text-accent">10.1</span>
-              <span>current rolling avg</span>
+            <div class="rolling-avg">
+              <span id="current-ao5" class="text-accent">-</span>
+              <span>current rolling avg of 5</span>
             </div>
           </div>
 
@@ -91,7 +90,7 @@
         </div>
 
         <div class="splits">
-          <h2 class="splits-title panel-title">SPLITS STATS (IGT)</h2>
+          <h2 class="splits-title panel-title">SPLITS STATS</h2>
           <div class="splits-header">
             <span>Splits</span>
             <span>Avg</span>
@@ -143,9 +142,10 @@
             <div class="activity-title panel-title">MONTHLY ACTIVITY</div>
           </div>
           <canvas id="activity-chart"></canvas>
+          <!-- prettier-ignore -->
           <div class="text-footer">
-            <span class="text-muted">8888 runs this year</span>
-            <span class="text-accent">2322 completed</span>
+             <span id="yearly_attempts" class="text-muted">- runs this year</span>
+            <span id="yearly_completions" class="text-accent">- completions</span>
           </div>
         </div>
 
