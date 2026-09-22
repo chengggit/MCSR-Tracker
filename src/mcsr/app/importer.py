@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from app.logger import logger
-from app.record import filter_record, has_enabled_cheat, read_record, save_to_db
+from mcsr.app.logger import logger
+from mcsr.app.record import filter_record, has_enabled_cheat, read_record, save_to_db
 
 if TYPE_CHECKING:
     from sqlite3 import Connection

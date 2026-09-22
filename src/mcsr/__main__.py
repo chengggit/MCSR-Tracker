@@ -5,12 +5,13 @@ from pathlib import Path
 
 import uvicorn
 
-from app.config import Instance, load_config
-from app.importer import batch_import
-from app.logger import logger
-from app.watcher import start_watcher
+from mcsr.app.config import Instance, load_config
+from mcsr.app.importer import batch_import
+from mcsr.app.logger import logger
+from mcsr.app.watcher import start_watcher
+from mcsr.app.paths import get_db_path
 
-DB_PATH = Path("data/runs.db")
+DB_PATH = get_db_path()
 
 
 def track(instance: Instance) -> None:
@@ -88,7 +89,7 @@ def main():
     else:
         print(f"Tracking {args.track} and Launching Dashboard on http://127.0.0.1:8000")
         track(instance)
-        uvicorn.run("app.api:app")
+        uvicorn.run("mcsr.app.api:app")
         return
 
 

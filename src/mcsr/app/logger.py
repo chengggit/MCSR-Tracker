@@ -1,11 +1,11 @@
 import logging
 from datetime import date
-from pathlib import Path
+
+from mcsr.app.paths import get_log_dir
 
 
 def setup_logger():
-    log_path = Path(f"data/logs/{date.today().isoformat()}.log")
-    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path = get_log_dir() / f"{date.today().isoformat()}.log"
 
     logger = logging.getLogger("mcsr")
     logger.setLevel(logging.DEBUG)

@@ -3,7 +3,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-from app.logger import logger
+from mcsr.app.logger import logger
 
 # keys to extract from record.json
 KEYS_TO_EXTRACT = [

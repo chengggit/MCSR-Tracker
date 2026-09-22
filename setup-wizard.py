@@ -3,8 +3,8 @@ from pathlib import Path
 import questionary
 from questionary import Choice
 
-from app.config import Instance, load_config, save_config
-from app.db import initialize_db
+from mcsr.app.config import Instance, load_config, save_config
+from mcsr.app.db import initialize_db
 
 
 # Get instances directory, check and save to config
