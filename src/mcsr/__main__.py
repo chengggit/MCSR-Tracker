@@ -9,6 +9,8 @@ from mcsr.app.config import Instance, load_config
 from mcsr.app.importer import batch_import
 from mcsr.app.logger import logger
 from mcsr.app.paths import get_db_path
+from mcsr.app.setup_mcsr import setup
+from mcsr.app.updater import updater
 from mcsr.app.watcher import start_watcher
 
 DB_PATH = get_db_path()
@@ -77,6 +79,18 @@ def import_world(instance_name: str, world_directory: tuple[str]) -> None:
     except sqlite3.Error as e:
         logger.error(f"Error connecting to SQLite database: {e}")
         sys.exit(1)
+
+
+@main.command("setup")
+def setup_command() -> None:
+    """Setup MCSR Tracker"""
+    setup()
+
+
+@main.command("update")
+def update_command() -> None:
+    """Check for and install the latest version of MCSR Tracker."""
+    updater()
 
 
 if __name__ == "__main__":
