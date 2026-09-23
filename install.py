@@ -9,6 +9,7 @@ import venv
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from tempfile import TemporaryDirectory
 
 MIN_PYTHON = (3, 14)
 DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "mcsr-tracker"
@@ -251,46 +252,42 @@ def main() -> None:
     print(f"{CYAN}Fetching latest release...{RESET}")
     _, whl_file, checksum_file = get_latest_release()
 
-    install_dir.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory() as temp_dir:
+        temp_path = Path(temp_dir)
+        whl_path = temp_path / whl_file["name"]
+        checksum_path = temp_path / checksum_file["name"]
 
-    whl_path = install_dir / whl_file["name"]
-    checksum_path = install_dir / checksum_file["name"]
+        print(f"{CYAN}Downloading MCSR Tracker...{RESET}")
+        download_file(whl_file["url"], whl_path)
 
-    print(f"{CYAN}Downloading checksums...{RESET}")
-    download_file(whl_file["url"], whl_path)
+        print(f"{CYAN}Downloading checksums...{RESET}")
+        download_file(
+            checksum_file["url"],
+            checksum_path,
+        )
 
-    print(f"{CYAN}Downloading checksums...{RESET}")
-    download_file(
-        checksum_file["url"],
-        checksum_path,
-    )
+        print(f"{CYAN}Verifying file integrity...{RESET}")
 
-    print(f"{CYAN}Verifying file integrity...{RESET}")
+        if not verify_checksum(checksum_path, whl_path):
+            print(f"\n{RED}Error: Checksum verification failed.{RESET}")
+            sys.exit(1)
 
-    if not verify_checksum(checksum_path, whl_path):
-        print(f"\n{RED}Error: Checksum verification failed.{RESET}")
-        sys.exit(1)
+        print(f"{GREEN}Checksum verified.{RESET}")
 
-    print(f"{GREEN}Checksum verified.{RESET}")
+        print(f"{CYAN}Creating a virtual environment for MCSR Tracker...{RESET}")
+        venv_dir = install_dir / "venv"
+        create_venv(venv_dir)
 
-    print(f"{CYAN}Creating a virtual environment for MCSR Tracker...{RESET}")
-    venv_dir = install_dir / "venv"
-    create_venv(venv_dir)
+        venv_python = venv_dir / "bin" / "python"
 
-    venv_python = venv_dir / "bin" / "python"
-
-    print(f"{CYAN}Installing MCSR Tracker...{RESET}\n")
-    subprocess.run(
-        [str(venv_python), "-m", "pip", "install", str(whl_path)],
-        check=True,
-    )
+        print(f"{CYAN}Installing MCSR Tracker...{RESET}\n")
+        subprocess.run(
+            [str(venv_python), "-m", "pip", "install", str(whl_path)],
+            check=True,
+        )
 
     mcsr_target = venv_dir / "bin" / "mcsr"
     create_symlink(mcsr_target)
-
-    # Clean up artifacts
-    whl_path.unlink()
-    checksum_path.unlink()
 
     print(f"\n{GREEN}MCSR Tracker installed successfully!{RESET}")
     print(f'{CYAN}Type "mcsr --help" to get started.{RESET}\n')
