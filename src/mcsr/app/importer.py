@@ -48,7 +48,7 @@ def import_world(full_world_dir: Path, instance_name: str, conn: Connection) -> 
 
 
 def batch_import(
-    world_dirs: list[Path | str], instance_name: str, conn: Connection
+    world_dirs: list[str], instance_name: str, conn: Connection
 ) -> list[dict]:
     results = []
     for world_dir in world_dirs:
