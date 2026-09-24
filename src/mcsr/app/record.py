@@ -32,11 +32,12 @@ TIMELINE_NAMES = {
 def is_atum_world(log_path: Path) -> bool:
     timeout = 10
     deadline = time.monotonic() + timeout
-    last_error = None
+    last_error = "Timed out"
 
     while time.monotonic() < deadline:
         try:
             if not log_path.exists() or log_path.stat().st_size == 0:
+                last_error = "File is missing or 0 bytes"
                 time.sleep(0.05)
                 continue
 
@@ -56,7 +57,7 @@ def is_atum_world(log_path: Path) -> bool:
             time.sleep(0.05)
             continue
 
-        except (json.JSONDecodeError, OSError) as e:
+        except (json.JSONDecodeError, OSError, KeyError, TypeError) as e:
             last_error = e
 
         time.sleep(0.05)
