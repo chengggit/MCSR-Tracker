@@ -47,4 +47,6 @@ def initialize_db() -> None:
             "CREATE INDEX IF NOT EXISTS idx_timelines_run_id ON timelines(run_id)"
         )
 
+        conn.execute("PRAGMA user_version = 1")
+
     print("Database initialized successfully!")
