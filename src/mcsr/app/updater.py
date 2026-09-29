@@ -71,10 +71,10 @@ def has_updates(tag_name: str) -> bool:
     return False
 
 
-def updater() -> None:
+def updater(force: bool = False) -> None:
     tag_name, whl_file, checksum_file = get_latest_release()
 
-    if not has_updates(tag_name):
+    if not force and not has_updates(tag_name):
         return
 
     with TemporaryDirectory() as temp_dir:
@@ -93,9 +93,25 @@ def updater() -> None:
             print("Error: Checksum verification failed. Update aborted.")
             return
 
-        print("Installing update...")
-        subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--upgrade", str(whl_path)],
-            check=True,
-        )
-        print("MCSR Tracker updated successfully.")
+        # Forcing update basically acts as a reinstaller and will install the latest release
+        if force:
+            print("Reinstalling...")
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    str(whl_path),
+                ],
+                check=True,
+            )
+            print("MCSR Tracker reinstalled successfully.")
+        else:
+            print("Updating...")
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "--upgrade", str(whl_path)],
+                check=True,
+            )
+            print("MCSR Tracker updated successfully.")
