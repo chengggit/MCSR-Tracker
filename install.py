@@ -7,9 +7,9 @@ import subprocess
 import sys
 import venv
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from tempfile import TemporaryDirectory
 
 MIN_PYTHON = (3, 14)
 DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "mcsr-tracker"
@@ -85,7 +85,7 @@ def create_symlink(link_target: Path) -> None:
 
     if mcsr_link.exists() or mcsr_link.is_symlink():
         if mcsr_link.is_symlink() and mcsr_link.resolve() == link_target.resolve():
-            print(f"{GRAY}MCSR command already exists. Skipping...{RESET}")
+            print(f"\n{GRAY}MCSR command already exists. Skipping...{RESET}")
             return
 
         print(f"{RED}Error: {mcsr_link} already exists.{RESET}")
@@ -213,7 +213,7 @@ def ask_custom_path() -> str | None:
 
 
 # Handle TUI interaction and return the selected installation directory.
-def run_tui() -> Path:
+def path_option() -> Path:
     title = "Where would you like to install MCSR Tracker?"
     options = ["Default", "Custom", "Cancel"]
 
@@ -235,6 +235,18 @@ def run_tui() -> Path:
         sys.exit(0)
 
 
+def confirm(title: str) -> bool:
+    options = ["Yes", "No", "Cancel"]
+    choice = select_option(title, options)
+
+    if choice == 0:
+        return True
+    elif choice == 1:
+        return False
+    else:
+        sys.exit(0)
+
+
 # Main function tying everything together
 def main() -> None:
     """Check the Python version and fetch the latest release from GitHub.
@@ -247,7 +259,7 @@ def main() -> None:
 
     check_python_version()
 
-    install_dir = run_tui()
+    install_dir = path_option()
 
     print(f"{CYAN}Fetching latest release...{RESET}")
     _, whl_file, checksum_file = get_latest_release()
@@ -279,17 +291,41 @@ def main() -> None:
         create_venv(venv_dir)
 
         venv_python = venv_dir / "bin" / "python"
+        mcsr_bin = venv_dir / "bin" / "mcsr"
 
-        print(f"{CYAN}Installing MCSR Tracker...{RESET}\n")
-        subprocess.run(
-            [str(venv_python), "-m", "pip", "install", str(whl_path)],
-            check=True,
-        )
+        if mcsr_bin.exists():
+            reinstall = confirm(
+                "Found an existing installation of MCSR Tracker. Reinstall?"
+            )
+            if not reinstall:
+                return
 
-    mcsr_target = venv_dir / "bin" / "mcsr"
-    create_symlink(mcsr_target)
+            print(f"{CYAN}Reinstalling MCSR Tracker...{RESET}\n")
+            subprocess.run(
+                [
+                    str(venv_python),
+                    "-m",
+                    "pip",
+                    "install",
+                    "--force-reinstall",
+                    str(whl_path),
+                ],
+                check=True,
+            )
+            print(f"\n{GREEN}MCSR Tracker reinstalled successfully!{RESET}")
+        else:
+            print(f"{CYAN}Creating a virtual environment for MCSR Tracker...{RESET}")
+            create_venv(venv_dir)
 
-    print(f"\n{GREEN}MCSR Tracker installed successfully!{RESET}")
+            print(f"{CYAN}Installing MCSR Tracker...{RESET}\n")
+            subprocess.run(
+                [str(venv_python), "-m", "pip", "install", str(whl_path)],
+                check=True,
+            )
+            print(f"\n{GREEN}MCSR Tracker installed successfully!{RESET}")
+
+    create_symlink(mcsr_bin)
+
     print(f'{CYAN}Type "mcsr --help" to get started.{RESET}\n')
 
 
