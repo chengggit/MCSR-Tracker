@@ -12,8 +12,13 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 MIN_PYTHON = (3, 14)
-DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "mcsr-tracker"
 API_URL = "https://api.github.com/repos/chengggit/MCSR-Tracker/releases/latest"
+
+# window
+if os.name == "nt":
+    DEFAULT_INSTALL_DIR = Path(os.environ["LOCALAPPDATA"]) / "mcsr-tracker"
+else:  # unix
+    DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "mcsr-tracker"
 
 
 def check_python_version() -> None:
@@ -290,8 +295,13 @@ def main() -> None:
         venv_dir = install_dir / "venv"
         create_venv(venv_dir)
 
-        venv_python = venv_dir / "bin" / "python"
-        mcsr_bin = venv_dir / "bin" / "mcsr"
+        if os.name == "nt":
+            venv_python = venv_dir / "Scripts" / "python.exe"
+            mcsr_bin = venv_dir / "Scripts" / "mcsr.exe"
+
+        else:
+            venv_python = venv_dir / "bin" / "python"
+            mcsr_bin = venv_dir / "bin" / "mcsr"
 
         if mcsr_bin.exists():
             reinstall = confirm(
@@ -324,9 +334,26 @@ def main() -> None:
             )
             print(f"\n{GREEN}MCSR Tracker installed successfully!{RESET}")
 
-    create_symlink(mcsr_bin)
+    if os.name == "nt":
+        print(f"""\n{CYAN}To use "mcsr" command from anywhere, add the following directory to your User PATH:
 
-    print(f'{CYAN}Type "mcsr --help" to get started.{RESET}\n')
+            {mcsr_bin.parent}
+
+        Windows:
+
+            1. Search for "Environment Variables"
+            2. Select "Edit environment variables for your account"
+            3. Select "Path" → "Edit" → "New"
+            4. Add the directory above
+            5. Click OK to save
+
+        Restart your terminal after updating PATH.
+
+        Then type:
+            "mcsr --help" to get started.{RESET}""")
+    else:
+        create_symlink(mcsr_bin)
+        print(f'{CYAN}Type "mcsr --help" to get started.{RESET}\n')
 
 
 if __name__ == "__main__":

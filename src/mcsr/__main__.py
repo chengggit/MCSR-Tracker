@@ -1,6 +1,7 @@
 import shutil
 import sqlite3
 import sys
+import os
 from pathlib import Path
 
 import click
@@ -123,10 +124,13 @@ def uninstall() -> None:
         style=danger_style,
     ).ask():
         return
-
     mcsr_home_dir = mcsr_home()
     venv_dir = mcsr_home_dir / "venv"
-    bin_path = Path.home() / ".local" / "bin" / "mcsr"
+
+    if os.name == "nt":
+        mcsr_bin = venv_dir / "Scripts" / "mcsr.exe"
+    else:
+        mcsr_bin = Path.home() / ".local" / "bin" / "mcsr"
 
     keep_data = questionary.confirm(
         "Keep your data?",
@@ -135,7 +139,7 @@ def uninstall() -> None:
 
     if keep_data:
         shutil.rmtree(venv_dir)
-        bin_path.unlink(missing_ok=True)
+        mcsr_bin.unlink(missing_ok=True)
     else:
         if not questionary.confirm(
             "This will PERMANENTLY DELETE your run database, configuration, and logs. Are you sure?",
@@ -145,7 +149,7 @@ def uninstall() -> None:
             return
 
         shutil.rmtree(mcsr_home_dir)
-        bin_path.unlink(missing_ok=True)
+        mcsr_bin.unlink(missing_ok=True)
 
     print(f"{CYAN}MCSR Tracker uninstalled.{RESET}")
 
