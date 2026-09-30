@@ -298,7 +298,6 @@ def main() -> None:
         if os.name == "nt":
             venv_python = venv_dir / "Scripts" / "python.exe"
             mcsr_bin = venv_dir / "Scripts" / "mcsr.exe"
-
         else:
             venv_python = venv_dir / "bin" / "python"
             mcsr_bin = venv_dir / "bin" / "mcsr"
@@ -341,10 +340,10 @@ def main() -> None:
 
         Windows:
 
-            1. Search for "Environment Variables"
-            2. Select "Edit environment variables for your account"
-            3. Select "Path" → "Edit" → "New"
-            4. Add the directory above
+            1. Search for "Edit the system environment variables"
+            2. Click "Environment Variables..." near the bottom
+            3. Under "User variables for NAME" section, double click on "Path"
+            4. Click "New" and add the directory above
             5. Click OK to save
 
         Restart your terminal after updating PATH.

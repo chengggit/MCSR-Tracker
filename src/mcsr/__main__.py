@@ -1,27 +1,20 @@
-import shutil
 import sqlite3
 import sys
-import os
 from pathlib import Path
 
 import click
-import questionary
 import uvicorn
-from questionary import Style
 
 from mcsr.app.config import Instance, load_config
 from mcsr.app.importer import batch_import
 from mcsr.app.logger import logger
-from mcsr.app.paths import get_db_path, mcsr_home
+from mcsr.app.paths import get_db_path
 from mcsr.app.setup_mcsr import setup
+from mcsr.app.uninstaller import uninstaller
 from mcsr.app.updater import updater
 from mcsr.app.watcher import start_watcher
 
 DB_PATH = get_db_path()
-BOLD = "\033[1m"
-RESET = "\033[0m"
-CYAN = "\033[36m"
-GRAY = "\033[90m"
 
 
 def get_instance_path(config_data: dict, instance_name: str) -> Path:
@@ -102,56 +95,15 @@ def update_command() -> None:
 
 
 @main.command("reinstall")
-def reinstall() -> None:
+def reinstall_command() -> None:
     """Reinstall MCSR Tracker"""
     updater(True)
 
 
 @main.command("uninstall")
-def uninstall() -> None:
+def uninstall_command() -> None:
     """Uninstall MCSR Tracker"""
-    danger_style = Style(
-        [
-            ("question", "fg:red bold"),
-            ("qmark", "fg:red bold"),
-            ("instruction", "fg:red bold"),
-            ("answer", "fg:red bold"),
-        ]
-    )
-
-    if not questionary.confirm(
-        "Uninstall MCSR Tracker?",
-        style=danger_style,
-    ).ask():
-        return
-    mcsr_home_dir = mcsr_home()
-    venv_dir = mcsr_home_dir / "venv"
-
-    if os.name == "nt":
-        mcsr_bin = venv_dir / "Scripts" / "mcsr.exe"
-    else:
-        mcsr_bin = Path.home() / ".local" / "bin" / "mcsr"
-
-    keep_data = questionary.confirm(
-        "Keep your data?",
-        style=danger_style,
-    ).ask()
-
-    if keep_data:
-        shutil.rmtree(venv_dir)
-        mcsr_bin.unlink(missing_ok=True)
-    else:
-        if not questionary.confirm(
-            "This will PERMANENTLY DELETE your run database, configuration, and logs. Are you sure?",
-            style=danger_style,
-        ).ask():
-            print(f"{GRAY}Uninstallation cancelled.{RESET}")
-            return
-
-        shutil.rmtree(mcsr_home_dir)
-        mcsr_bin.unlink(missing_ok=True)
-
-    print(f"{CYAN}MCSR Tracker uninstalled.{RESET}")
+    uninstaller()
 
 
 if __name__ == "__main__":
