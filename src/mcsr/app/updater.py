@@ -84,10 +84,10 @@ def updater(force: bool = False) -> None:
         checksum_path = temp_path / checksum_file["name"]
 
         print("Downloading update...")
-        download_file(whl_file["url"], whl_path)
+        download_file(whl_file["browser_download_url"], whl_path)
 
         print("Downloading checksums...")
-        download_file(checksum_file["url"], checksum_path)
+        download_file(checksum_file["browser_download_url"], checksum_path)
 
         if not verify_checksum(checksum_path, whl_path):
             print("Error: Checksum verification failed. Update aborted.")

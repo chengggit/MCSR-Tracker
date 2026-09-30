@@ -270,11 +270,11 @@ def main() -> None:
         checksum_path = temp_path / checksum_file["name"]
 
         print(f"{CYAN}Downloading MCSR Tracker...{RESET}")
-        download_file(whl_file["url"], whl_path)
+        download_file(whl_file["browser_download_url"], whl_path)
 
         print(f"{CYAN}Downloading checksums...{RESET}")
         download_file(
-            checksum_file["url"],
+            checksum_file["browser_download_url"],
             checksum_path,
         )
 
