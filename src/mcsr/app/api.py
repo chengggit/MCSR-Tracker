@@ -1,12 +1,14 @@
 import json
 from enum import StrEnum
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.db import get_db
-from app.runs import (
+from mcsr.app.db import get_db
+from mcsr.app.paths import get_config_path
+from mcsr.app.runs import (
     fetch_dashboard_stats,
     fetch_monthly_activity_summary,
     fetch_run_by_id,
@@ -39,7 +41,7 @@ class RunTypes(StrEnum):
 
 @router.get("/config", responses={404: {"description": "Config not found"}})
 def get_config():
-    with open("config.json", encoding="utf-8") as f:
+    with open(get_config_path(), encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -139,5 +141,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
 app.include_router(router)
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

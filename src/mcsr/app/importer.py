@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from app.logger import logger
-from app.record import filter_record, has_enabled_cheat, read_record, save_to_db
+from mcsr.app.logger import logger
+from mcsr.app.record import filter_record, has_enabled_cheat, read_record, save_to_db
 
 if TYPE_CHECKING:
     from sqlite3 import Connection
@@ -48,7 +48,7 @@ def import_world(full_world_dir: Path, instance_name: str, conn: Connection) -> 
 
 
 def batch_import(
-    world_dirs: list[Path | str], instance_name: str, conn: Connection
+    world_dirs: list[str], instance_name: str, conn: Connection
 ) -> list[dict]:
     results = []
     for world_dir in world_dirs:

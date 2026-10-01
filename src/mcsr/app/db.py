@@ -1,7 +1,8 @@
 import sqlite3
-from pathlib import Path
 
-DB_PATH = Path("data/runs.db")
+from mcsr.app.paths import get_db_path
+
+DB_PATH = get_db_path()
 
 
 def get_db():
@@ -16,8 +17,6 @@ def get_db():
 
 
 def initialize_db() -> None:
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute("PRAGMA foreign_keys = ON")
 
@@ -47,5 +46,7 @@ def initialize_db() -> None:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_timelines_run_id ON timelines(run_id)"
         )
+
+        conn.execute("PRAGMA user_version = 1")
 
     print("Database initialized successfully!")

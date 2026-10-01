@@ -1,6 +1,6 @@
 [project]
 name = "mcsr-tracker"
-version = "0.1.0"
+version = "1.0.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -8,23 +8,24 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "annotated-doc==0.0.4",
-    "annotated-types==0.7.0",
-    "anyio==4.14.0",
-    "click==8.4.1",
-    "fastapi==0.137.1",
+    "annotated-doc==0.0.5",
+    "annotated-types==0.8.0",
+    "anyio==4.15.1",
+    "click==8.5.0",
+    "fastapi==0.141.1",
     "h11==0.16.0",
-    "idna==3.18",
-    "prompt-toolkit==3.0.52",
-    "pydantic==2.13.4",
-    "pydantic-core==2.46.4",
+    "idna==3.20",
+    "packaging>=26.3",
+    "prompt-toolkit==3.0.53",
+    "pydantic==2.13.5",
+    "pydantic-core==2.46.5",
     "questionary==2.1.1",
-    "starlette==1.3.1",
-    "typing-extensions==4.15.0",
-    "typing-inspection==0.4.2",
-    "uvicorn==0.49.0",
+    "starlette==1.6.0",
+    "typing-extensions==4.16.0",
+    "typing-inspection==0.4.4",
+    "uvicorn==0.53.0",
     "watchdog==6.0.0",
-    "wcwidth==0.7.0",
+    "wcwidth==0.8.4",
 ]
 
 [dependency-groups]
@@ -41,8 +42,8 @@ typecheck = "pyright"
 
 [tool.poe.tasks.dev]
 shell = """
-    uvicorn app.api:app --reload --reload-dir app &
-    npx browser-sync start --proxy localhost:8000 --files "static/**/*" --port 5500 --no-notify
+    uvicorn mcsr.app.api:app --reload --reload-dir src/mcsr/app &
+    npx browser-sync start --proxy localhost:8000 --files "src/mcsr/static/**/*" --port 5500 --no-notify
 """
 
 [tool.ruff]
@@ -60,12 +61,22 @@ select = [
 ignore = ["E501"]  # line too long
 
 [tool.ruff.lint.isort]
-known-first-party = ["app"]
+known-first-party = ["mcsr"]
 
 [tool.pyright]
 pythonVersion = "3.14"
 typeCheckingMode = "standard"
-include = ["app", "main.py", "setup.py"]
+include = ["src/mcsr"]
 exclude = ["__pycache__", ".*", ".venv", "data", "**/node_modules"]
 venvPath = "."
 venv = ".venv"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcsr"]
+
+[project.scripts]
+mcsr = "mcsr.__main__:main"

@@ -2,6 +2,10 @@
 .vscode/
 __pycache__/
 *.pyc
-data/
+runs.db
+logs/
 config.json
 node_modules/
+dist/
+test/
+.env

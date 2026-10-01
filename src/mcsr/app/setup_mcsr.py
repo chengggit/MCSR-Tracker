@@ -3,8 +3,9 @@ from pathlib import Path
 import questionary
 from questionary import Choice
 
-from app.config import Instance, load_config, save_config
-from app.db import initialize_db
+from mcsr.app.config import Instance, load_config, save_config
+from mcsr.app.db import initialize_db
+from mcsr.app.paths import get_db_path
 
 
 # Get instances directory, check and save to config
@@ -113,9 +114,9 @@ def update_config(instance: Instance) -> None:
     print("Updated config")
 
 
-def main() -> None:
+def setup() -> None:
     config = load_config()
-    db_path = Path("data/runs.db")
+    db_path = get_db_path()
 
     if not db_path.exists():
         initialize_db()
@@ -153,4 +154,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    setup()

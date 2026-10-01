@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from app.logger import logger
-from app.record import process_run
+from mcsr.app.logger import logger
+from mcsr.app.record import process_run
 
 WORLD_QUEUE = queue.Queue()
 
 if TYPE_CHECKING:
     from sqlite3 import Connection  # noqa: I001
-    from app.config import Instance
+    from mcsr.app.config import Instance
 
 
 # read state.json from hermes
