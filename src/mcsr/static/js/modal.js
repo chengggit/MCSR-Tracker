@@ -108,6 +108,11 @@ export const RunModal = {
   },
 
   resetRows() {
+    document.getElementById("modal-banner-pb").textContent = "";
+    document.querySelector(".modal-chart-container .chart-title").textContent =
+      "CUMULATIVE TIME vs PB";
+    document.getElementById("modal-splits-header-vs-pb").textContent = "vs PB";
+
     const columns = document.querySelectorAll(`
     .modal-splits-row .modal-col-igt,
     .modal-splits-row .modal-col-segment,
@@ -132,8 +137,21 @@ export const RunModal = {
     this.resetRows();
 
     // Banner
-    document.getElementById("modal-banner-run").textContent =
+    document.getElementById("modal-banner-world").textContent =
       runData.world_name;
+
+    let comparisonLabel;
+    if (runData.id === allSplitsData.overall.pb_run_id) {
+      document.getElementById("modal-banner-pb").textContent = "PB!";
+
+      comparisonLabel = "Last PB";
+      document.getElementById("modal-splits-header-vs-pb").textContent =
+        `vs ${comparisonLabel}`;
+      document.querySelector(
+        ".modal-chart-container .chart-title",
+      ).textContent = `CUMULATIVE TIME vs ${comparisonLabel}`;
+    }
+
     document.getElementById("modal-banner-instance").textContent =
       `${runData.instance} (${runData.mc_version})`;
     document.getElementById("modal-banner-date").textContent = unixToDate(
@@ -166,7 +184,11 @@ export const RunModal = {
     );
     if (pbData?.final_igt) chartPbSplits.push(pbData.final_igt);
 
-    renderModalChart(chartRunSplits, chartPbSplits);
+    renderModalChart(
+      chartRunSplits,
+      chartPbSplits,
+      comparisonLabel ? comparisonLabel : "PB Run",
+    );
 
     // Table
     for (let i = 0; i < splits.length; i++) {

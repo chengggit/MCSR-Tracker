@@ -5,6 +5,7 @@ import {
   fetchRecentRuns,
   fetchMonthlyActivity,
   fetchRecent12CompletedRuns,
+  fetch2ndFastestBeforePB,
 } from "./js/api.js";
 
 import { renderMonthlyActivity, renderPerformanceChart } from "./js/chart.js";
@@ -95,7 +96,7 @@ async function loadRunModal() {
     const row = e.target.closest(".recent-runs-row");
     if (!row) return;
 
-    const runId = row.dataset.runId;
+    const runId = Number(row.dataset.runId);
     const currentInstance =
       document.getElementById("instance-btn")?.dataset.value;
 
@@ -105,8 +106,21 @@ async function loadRunModal() {
         fetchSplitsStats(currentInstance),
       ]);
 
-      const pbRunId = instanceSplitsData.overall?.pb_run_id;
-      const pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
+      let pbRunId = instanceSplitsData.overall?.pb_run_id;
+      let pbRunData;
+
+      if (runId === pbRunId) {
+        const beforeDate = runData.date;
+        const secondFastest = await fetch2ndFastestBeforePB(
+          runData.instance,
+          beforeDate,
+        );
+
+        pbRunId = secondFastest[0].id;
+        pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
+      } else {
+        pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
+      }
 
       RunModal.open(runData, instanceSplitsData, pbRunData);
     } catch (err) {
