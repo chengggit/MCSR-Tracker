@@ -10,11 +10,12 @@
 export function renderTable({ container, rowConfig = {}, columns = [] }) {
   if (!container) return;
 
+  container.innerHTML = "";
+
   // Determine row count from the first column's array length
   const rowCount = columns[0]?.values?.length ?? 0;
 
   if (rowCount === 0) {
-    container.innerHTML = `<div class="empty-state">No data available</div>`;
     return;
   }
 

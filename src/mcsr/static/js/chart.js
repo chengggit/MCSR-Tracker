@@ -233,7 +233,7 @@ export function renderPerformanceChart(runs) {
   const canvas = document.getElementById("performance-chart");
   if (!canvas) return;
 
-  if (!runs || runs.length === 0) return;
+  if (performanceChartInstance) performanceChartInstance.destroy();
 
   // 5 completed runs required
   const latest5Runs = runs.slice(0, 5);
@@ -254,8 +254,6 @@ export function renderPerformanceChart(runs) {
     const match = run.world_name?.match(/#\d+/);
     return match ? match[0] : run.world_name; // Fallback to full name if no '#' exists
   });
-
-  if (performanceChartInstance) performanceChartInstance.destroy();
 
   const greenGradient = [
     [0, "rgba(59, 209, 111, 0.35)"],
@@ -362,7 +360,7 @@ export function renderModalChart(runSplits, pbSplits) {
 
 let activityChartInstance = null;
 export function renderMonthlyActivity(data) {
-  if (!data.monthly.length) return;
+  if (activityChartInstance) activityChartInstance.destroy();
 
   const { monthly, yearly_attempts, yearly_completions } = data;
 
@@ -379,8 +377,6 @@ export function renderMonthlyActivity(data) {
 
   const canvas = document.getElementById("activity-chart");
   if (!canvas) return;
-
-  if (activityChartInstance) activityChartInstance.destroy();
 
   const colors = getThemeColors();
 
