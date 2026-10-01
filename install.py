@@ -334,9 +334,16 @@ def main() -> None:
             print(f"\n{GREEN}MCSR Tracker installed successfully!{RESET}")
 
     if os.name == "nt":
+        # launcher for mcsr command without typing the full path
+        launcher = install_dir / "mcsr.cmd"
+        launcher.write_text(
+            '@echo off\n"%~dp0venv\\Scripts\\python.exe" -m mcsr %*\n',
+            encoding="utf-8",
+        )
+
         print(f"""\n{CYAN}To use "mcsr" command from anywhere, add the following directory to your User PATH:
 
-            {mcsr_bin.parent}
+            {install_dir}
 
         Windows:
 

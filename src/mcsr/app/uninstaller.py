@@ -13,7 +13,9 @@ RESET = "\033[0m"
 CYAN = "\033[36m"
 GRAY = "\033[90m"
 
-def windows_uninstaller(target: bool = True) -> None:
+
+# a dedicated uninstaller for window to fix file lock problem when uninstalling
+def windows_uninstaller(target: Path, launcher: Path) -> None:
     system_python = Path(sys.base_prefix) / "python.exe"
 
     # dont indent this string
@@ -22,12 +24,15 @@ import shutil
 from pathlib import Path
 
 shutil.rmtree(Path(r"{target}"))
+Path(r"{launcher}").unlink(missing_ok=True)
+
 print(f"\\n{CYAN}MCSR Tracker uninstalled.{RESET}")
 """
 
     subprocess.Popen(
         [str(system_python), "-c", cleanup_code],
     )
+
 
 def uninstaller() -> None:
     """Uninstall MCSR Tracker"""
@@ -65,7 +70,8 @@ def uninstaller() -> None:
     target = venv_dir if keep_data else mcsr_home_dir
 
     if os.name == "nt":
-        windows_uninstaller(target)
+        launcher_path = mcsr_home_dir / "mcsr.cmd"
+        windows_uninstaller(target, launcher_path)
         return
 
     shutil.rmtree(target)
