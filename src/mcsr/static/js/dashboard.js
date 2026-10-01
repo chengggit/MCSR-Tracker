@@ -21,9 +21,10 @@ export function renderCards(stats) {
   improvement.querySelector(".card-value").textContent =
     `-${msToTime(improvementDelta)}`;
 
+  const finishRate = stats.finish_rate ? stats.finish_rate : 0;
   totalRuns.querySelector(".card-value").textContent = stats.total_runs;
   totalRuns.querySelector(".card-sub").textContent =
-    `${stats.finish_rate}% finish rate`;
+    `${finishRate}% finish rate`;
 
   resets.querySelector(".card-value").textContent = stats.resets;
 }
@@ -63,6 +64,11 @@ export function renderRecentRuns(runs) {
 }
 
 export function renderSplitsStats(stats) {
+  for (const row of document.querySelectorAll(".split-row")) {
+    row.querySelector(".split-avg").textContent = "";
+    row.querySelector(".split-best").textContent = "";
+  }
+
   for (const split of stats.splits) {
     const row = document.querySelector(
       `.split-row[data-split="${split.name}"]`,
@@ -75,12 +81,13 @@ export function renderSplitsStats(stats) {
   const completionRow = document.querySelector(
     `.split-row[data-split="completion"]`,
   );
-  if (stats.overall.best_igt) {
-    completionRow.querySelector(".split-avg").textContent = msToTime(
-      stats.overall.avg_igt,
-    );
-    completionRow.querySelector(".split-best").textContent = msToTime(
-      stats.overall.best_igt,
-    );
-  }
+
+  completionRow.querySelector(".split-avg").textContent = stats.overall.best_igt
+    ? msToTime(stats.overall.avg_igt)
+    : "";
+
+  completionRow.querySelector(".split-best").textContent = stats.overall
+    .best_igt
+    ? msToTime(stats.overall.best_igt)
+    : "";
 }
