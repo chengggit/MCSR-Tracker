@@ -26,7 +26,7 @@ function buildQuery(params = {}) {
 
 /**
  * Fetch runs with flexible query parameters for GET /runs endpoint.
- * @param {Object} params - Query params (instance, run_type, version, completed, limit, offset, sort_by, order)
+ * @param {Object} params - Query params (instance, run_type, version, completed, date, before_date, after_date, limit, offset, sort_by, order)
  */
 function fetchRuns(params = {}) {
   return apiFetch(`/runs${buildQuery(params)}`);
@@ -52,4 +52,14 @@ export const fetchRecent12CompletedRuns = (instance = null) =>
     instance: instance,
     completed: true,
     limit: 12,
+  });
+
+export const fetch2ndFastestBeforePB = (instance = null, beforeDate = null) =>
+  fetchRuns({
+    instance: instance,
+    completed: true,
+    before_date: beforeDate,
+    limit: 1,
+    sort_by: "final_igt",
+    order: "ASC",
   });

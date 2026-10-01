@@ -83,19 +83,28 @@ def get_runs(
     run_type: RunTypes | None = None,
     version: str | None = None,
     completed: bool | None = None,
+    date: int | None = None,
+    before_date: int | None = None,
+    after_date: int | None = None,
     limit: int = -1,
     offset: int = 0,
     sort_by: SortBy = SortBy.date,
     order: Order = Order.descending,
     conn=Depends(get_db),
 ):
-    """Fetch a list of runs with optional filtering, pagination, and sorting."""
+    """Fetch a list of runs with optional filtering, pagination, and sorting.
+
+    Date filters use Unix time in milliseconds.
+    """
     return fetch_runs(
         conn,
         instance=instance,
         run_type=run_type.value if run_type else None,
         version=version,
         completed=completed,
+        date=date,
+        before_date=before_date,
+        after_date=after_date,
         limit=limit,
         offset=offset,
         sort_by=sort_by.value,
