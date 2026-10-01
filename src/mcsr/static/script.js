@@ -116,7 +116,7 @@ async function loadRunModal() {
           beforeDate,
         );
 
-        pbRunId = secondFastest[0].id;
+        pbRunId = secondFastest[0]?.id;
         pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
       } else {
         pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;
