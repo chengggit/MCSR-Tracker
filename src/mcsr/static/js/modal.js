@@ -143,6 +143,9 @@ export const RunModal = {
       runData.is_completed ? msToTime(runData.final_igt) : "-";
     document.getElementById("modal-banner-rta").textContent =
       runData.is_completed ? msToTime(runData.final_rta) : "-";
+    document.getElementById("modal-banner-seed").textContent = runData.seed
+      ? runData.seed
+      : "-";
 
     const splits = formatSplits(runData.timelines);
     const pbSplits = pbData ? formatSplits(pbData.timelines) : [];
