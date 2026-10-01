@@ -76,6 +76,10 @@
   margin-bottom: var(--margin-8);
 }
 
+#modal-banner-rta {
+  margin-bottom: var(--margin-4);
+}
+
 .modal-chart-container {
   margin-bottom: var(--margin-32);
 

@@ -32,6 +32,7 @@ def initialize_db() -> None:
             date INTEGER,
             is_completed BOOLEAN,
             mc_version TEXT,
+            seed INTEGER,
             UNIQUE(instance, world_name)
         )""")
 
@@ -47,6 +48,6 @@ def initialize_db() -> None:
             "CREATE INDEX IF NOT EXISTS idx_timelines_run_id ON timelines(run_id)"
         )
 
-        conn.execute("PRAGMA user_version = 1")
+        conn.execute("PRAGMA user_version = 0")
 
     print("Database initialized successfully!")

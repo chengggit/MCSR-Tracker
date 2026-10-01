@@ -2,7 +2,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from mcsr.app.logger import logger
-from mcsr.app.record import filter_record, has_enabled_cheat, read_record, save_to_db
+from mcsr.app.record import (
+    filter_record,
+    has_enabled_cheat,
+    read_record,
+    read_seed,
+    save_to_db,
+)
 
 if TYPE_CHECKING:
     from sqlite3 import Connection
@@ -10,6 +16,7 @@ if TYPE_CHECKING:
 
 # Import one world, no play.log or atum check
 def import_world(full_world_dir: Path, instance_name: str, conn: Connection) -> dict:
+    nbt_path = full_world_dir / "level.dat"
     record_path = full_world_dir / "speedrunigt" / "record.json"
     events_path = full_world_dir / "speedrunigt" / "events.log"
 
@@ -36,7 +43,9 @@ def import_world(full_world_dir: Path, instance_name: str, conn: Connection) -> 
             "error": "Cheat status is unknown",
         }
 
-    filtered_record = filter_record(raw_record, instance_name, cheat_status["igt"])
+    filtered_record = filter_record(raw_record, cheat_status["igt"])
+    filtered_record["instance"] = instance_name
+    filtered_record["seed"] = read_seed(nbt_path)
 
     with conn:
         save_to_db(filtered_record, conn)

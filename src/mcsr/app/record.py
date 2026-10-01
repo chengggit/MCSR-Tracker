@@ -1,7 +1,10 @@
+import gzip
 import json
 import sqlite3
 import time
 from pathlib import Path
+
+from pynbt import NBTFile
 
 from mcsr.app.logger import logger
 
@@ -123,9 +126,20 @@ def has_enabled_cheat(events_path: Path) -> dict | None:
     return None
 
 
-def filter_record(raw_record: dict, instance_name: str, cheat_igt: int | None) -> dict:
+# Only reads seed if /seed was run
+def read_seed(path: Path) -> int | None:
+    try:
+        with gzip.open(path, "rb") as f:
+            nbt = NBTFile(f)
+            seed = int(nbt["Data"]["WorldGenSettings"]["seed"].value)
+            return seed
+    except OSError:
+        logger.debug("Cannot read NBT file. File is encrypted.")
+        return
+
+
+def filter_record(raw_record: dict, cheat_igt: int | None) -> dict:
     filtered_record = {key: raw_record[key] for key in KEYS_TO_EXTRACT}
-    filtered_record["instance"] = instance_name
 
     filtered_record["timelines"] = [
         timeline
@@ -142,17 +156,18 @@ def save_to_db(filtered_record: dict, conn: sqlite3.Connection) -> None:
     cursor.execute(
         """INSERT INTO runs (instance, world_name, run_type, category,
                     final_igt, final_rta, retimed_igt,
-                    date, is_completed, mc_version)
+                    date, is_completed, mc_version, seed)
 
                     VALUES (:instance, :world_name, :run_type, :category,
                     :final_igt, :final_rta, :retimed_igt,
-                    :date, :is_completed, :mc_version)
+                    :date, :is_completed, :mc_version, :seed)
 
                     ON CONFLICT (instance, world_name) DO UPDATE SET
                     final_igt = EXCLUDED.final_igt,
                     final_rta = EXCLUDED.final_rta,
                     retimed_igt = EXCLUDED.retimed_igt,
-                    is_completed = EXCLUDED.is_completed""",
+                    is_completed = EXCLUDED.is_completed,
+                    seed = COALESCE(EXCLUDED.seed, runs.seed)""",
         filtered_record,
     )
 
@@ -180,6 +195,7 @@ def save_to_db(filtered_record: dict, conn: sqlite3.Connection) -> None:
 def process_run(
     full_world_dir: Path, instance_name: str, conn: sqlite3.Connection
 ) -> None:
+    nbt_path = full_world_dir / "level.dat"
     log_path = full_world_dir / "hermes" / "play.log"
     record_path = full_world_dir / "speedrunigt" / "record.json"
     events_path = full_world_dir / "speedrunigt" / "events.log"
@@ -198,7 +214,9 @@ def process_run(
     if raw_record is None:
         return
 
-    filtered_record = filter_record(raw_record, instance_name, cheat_status["igt"])
+    filtered_record = filter_record(raw_record, cheat_status["igt"])
+    filtered_record["instance"] = instance_name
+    filtered_record["seed"] = read_seed(nbt_path)
 
     with conn:
         save_to_db(filtered_record, conn)
