@@ -62,6 +62,9 @@ def fetch_runs(
     run_type: str | None,
     version: str | None,
     completed: bool | None,
+    date: int | None,
+    before_date: int | None,
+    after_date: int | None,
     limit: int,
     offset: int,
     sort_by: str,
@@ -87,6 +90,18 @@ def fetch_runs(
     if completed is not None:
         filters.append("is_completed = ?")
         params.append(int(completed))
+
+    if date is not None:
+        filters.append("date = ?")
+        params.append(date)
+
+    if before_date is not None:
+        filters.append("date < ?")
+        params.append(before_date)
+
+    if after_date is not None:
+        filters.append("date > ?")
+        params.append(after_date)
 
     if filters:
         query += " WHERE " + " AND ".join(filters)

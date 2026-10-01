@@ -293,7 +293,7 @@ export function renderPerformanceChart(runs) {
 }
 
 let modalChartInstance = null;
-export function renderModalChart(runSplits, pbSplits) {
+export function renderModalChart(runSplits, pbSplits, comparisonLabel) {
   const canvas = document.getElementById("modal-chart");
   if (!canvas) return;
 
@@ -332,7 +332,7 @@ export function renderModalChart(runSplits, pbSplits) {
         createVerticalGradient(context, greenGradient),
     },
     {
-      label: "PB Run",
+      label: comparisonLabel,
       data: pbSplits,
       borderColor: colors.muted,
       borderWidth: 2,
