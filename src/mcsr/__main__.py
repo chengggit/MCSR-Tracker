@@ -66,7 +66,7 @@ def track(instance_name: str, dashboard: bool) -> None:
 
 @main.command("import")
 @click.argument("instance_name")
-@click.argument("world_directory", nargs=-1)
+@click.argument("world_directory", nargs=-1, required=True)
 def import_world(instance_name: str, world_directory: tuple[str]) -> None:
     """Import WORLD to INSTANCE"""
     try:
