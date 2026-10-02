@@ -143,9 +143,9 @@ export const RunModal = {
       document.getElementById("modal-banner-pb").textContent = "PB!";
 
       comparisonLabel = "Last PB";
-      document.getElementById("modal-splits-header-vs-pb").textContent = `vs ${comparisonLabel}`;
       document.querySelector(".modal-chart-container .chart-title").textContent =
-        `CUMULATIVE TIME vs ${comparisonLabel}`;
+        `CUMULATIVE TIME vs ${comparisonLabel.toUpperCase()}`;
+      document.getElementById("modal-splits-header-vs-pb").textContent = `vs ${comparisonLabel}`;
     }
 
     document.getElementById("modal-banner-instance").textContent =
