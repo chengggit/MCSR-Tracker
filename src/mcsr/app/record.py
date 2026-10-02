@@ -144,8 +144,7 @@ def filter_record(raw_record: dict, cheat_igt: int | None) -> dict:
     filtered_record["timelines"] = [
         timeline
         for timeline in raw_record["timelines"]
-        if timeline["name"] in TIMELINE_NAMES
-        and (cheat_igt is None or timeline["igt"] < cheat_igt)
+        if timeline["name"] in TIMELINE_NAMES and (cheat_igt is None or timeline["igt"] < cheat_igt)
     ]
 
     return filtered_record
@@ -182,9 +181,7 @@ def save_to_db(filtered_record: dict, conn: sqlite3.Connection) -> None:
     run_id = cursor.fetchone()[0]
     cursor.execute("DELETE FROM timelines WHERE run_id = ?", (run_id,))
 
-    records = [
-        (run_id, t["name"], t["igt"], t["rta"]) for t in filtered_record["timelines"]
-    ]
+    records = [(run_id, t["name"], t["igt"], t["rta"]) for t in filtered_record["timelines"]]
     cursor.executemany(
         """INSERT INTO timelines (run_id, name, igt, rta) VALUES (?, ?, ?, ?)""",
         records,
@@ -192,9 +189,7 @@ def save_to_db(filtered_record: dict, conn: sqlite3.Connection) -> None:
 
 
 # full_world_dir: "instance_path/world_name"
-def process_run(
-    full_world_dir: Path, instance_name: str, conn: sqlite3.Connection
-) -> None:
+def process_run(full_world_dir: Path, instance_name: str, conn: sqlite3.Connection) -> None:
     nbt_path = full_world_dir / "level.dat"
     log_path = full_world_dir / "hermes" / "play.log"
     record_path = full_world_dir / "speedrunigt" / "record.json"

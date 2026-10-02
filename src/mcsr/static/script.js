@@ -9,26 +9,18 @@ import {
 } from "./js/api.js";
 
 import { renderMonthlyActivity, renderPerformanceChart } from "./js/chart.js";
-
-import {
-  renderCards,
-  renderRecentRuns,
-  renderSplitsStats,
-} from "./js/dashboard.js";
-
+import { renderCards, renderRecentRuns, renderSplitsStats } from "./js/dashboard.js";
 import { renderDropdown } from "./js/dropdown.js";
-
 import { RunModal } from "./js/modal.js";
 
 async function fetchDashboardData(instance, options = {}) {
-  const [stats, splits, activity, recentRuns, performanceChart] =
-    await Promise.all([
-      fetchDashboardStats(instance, options),
-      fetchSplitsStats(instance, options),
-      fetchMonthlyActivity(instance, options),
-      fetchRecentRuns(instance, 8, options),
-      fetchRecent12CompletedRuns(instance, options),
-    ]);
+  const [stats, splits, activity, recentRuns, performanceChart] = await Promise.all([
+    fetchDashboardStats(instance, options),
+    fetchSplitsStats(instance, options),
+    fetchMonthlyActivity(instance, options),
+    fetchRecentRuns(instance, 8, options),
+    fetchRecent12CompletedRuns(instance, options),
+  ]);
 
   return { stats, splits, activity, recentRuns, performanceChart };
 }
@@ -97,8 +89,7 @@ async function loadRunModal() {
     if (!row) return;
 
     const runId = Number(row.dataset.runId);
-    const currentInstance =
-      document.getElementById("instance-btn")?.dataset.value;
+    const currentInstance = document.getElementById("instance-btn")?.dataset.value;
 
     try {
       const [runData, instanceSplitsData] = await Promise.all([
@@ -111,10 +102,7 @@ async function loadRunModal() {
 
       if (runId === pbRunId) {
         const beforeDate = runData.date;
-        const secondFastest = await fetch2ndFastestBeforePB(
-          runData.instance,
-          beforeDate,
-        );
+        const secondFastest = await fetch2ndFastestBeforePB(runData.instance, beforeDate);
 
         pbRunId = secondFastest[0]?.id;
         pbRunData = pbRunId ? await fetchRunById(pbRunId) : null;

@@ -43,9 +43,7 @@ def get_latest_release() -> tuple[str, dict, dict]:
 
             whl_file = next(asset for asset in assets if asset["name"].endswith(".whl"))
 
-            checksum_file = next(
-                asset for asset in assets if asset["name"] == "checksums.sha256"
-            )
+            checksum_file = next(asset for asset in assets if asset["name"] == "checksums.sha256")
         return data["tag_name"], whl_file, checksum_file
 
     except HTTPError as e:
@@ -303,9 +301,7 @@ def main() -> None:
             mcsr_bin = venv_dir / "bin" / "mcsr"
 
         if mcsr_bin.exists():
-            reinstall = confirm(
-                "Found an existing installation of MCSR Tracker. Reinstall?"
-            )
+            reinstall = confirm("Found an existing installation of MCSR Tracker. Reinstall?")
             if not reinstall:
                 return
 

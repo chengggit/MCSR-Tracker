@@ -28,9 +28,7 @@ def fetch_run_by_id(run_id: int, conn: sqlite3.Connection) -> dict | None:
     return data
 
 
-def fetch_run_by_world(
-    world_name: str, instance: str, conn: sqlite3.Connection
-) -> dict | None:
+def fetch_run_by_world(world_name: str, instance: str, conn: sqlite3.Connection) -> dict | None:
     query = """
     SELECT
         r.*,
@@ -271,9 +269,7 @@ def fetch_splits_stats(instance: str | None, conn: sqlite3.Connection) -> dict:
     }
 
 
-def fetch_monthly_activity_summary(
-    instance: str | None, conn: sqlite3.Connection
-) -> dict:
+def fetch_monthly_activity_summary(instance: str | None, conn: sqlite3.Connection) -> dict:
     """
     Fetches monthly attempt/completion activity (last 6 months) and current year's totals.
     Fetches across all instances if `instance` is None.
@@ -305,12 +301,12 @@ def fetch_monthly_activity_summary(
     monthly = [dict(row) for row in reversed(monthly_row)]
 
     if instance is None:
-        yearly_where = (
-            "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')"
-        )
+        yearly_where = "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now')"
         yearly_params = ()
     else:
-        yearly_where = "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now') AND instance = ?"
+        yearly_where = (
+            "WHERE strftime('%Y', date / 1000, 'unixepoch') = strftime('%Y', 'now') AND instance = ?"
+        )
         yearly_params = (instance,)
 
     yearly_query = f"""

@@ -35,8 +35,7 @@ function fetchRuns(params = {}) {
 /* --- Helpers --- */
 export const fetchRunById = (runId) => apiFetch(`/runs/${runId}`);
 
-export const fetchRecentRuns = (instance = null, limit = 8) =>
-  fetchRuns({ instance, limit });
+export const fetchRecentRuns = (instance = null, limit = 8) => fetchRuns({ instance, limit });
 
 export const fetchDashboardStats = (instance = null) =>
   apiFetch(`/stats/dashboard${buildQuery({ instance })}`);

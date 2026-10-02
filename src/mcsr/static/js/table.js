@@ -24,8 +24,7 @@ export function renderTable({ container, rowConfig = {}, columns = [] }) {
   // Build row HTML by looping through row index `i`
   const rowsHtml = Array.from({ length: rowCount }, (_, i) => {
     // Get row-level attributes for index i (e.g. data-run-id="12")
-    const attrs =
-      typeof rowConfig.getAttrs === "function" ? rowConfig.getAttrs(i) : "";
+    const attrs = typeof rowConfig.getAttrs === "function" ? rowConfig.getAttrs(i) : "";
 
     // Build each cell in row i
     const cellsHtml = columns
