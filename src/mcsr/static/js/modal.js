@@ -31,7 +31,7 @@ function formatSplits(rawSplits) {
     .filter((split) => split.name !== "kill_ender_dragon")
     .map((split) => {
       let rowName = split.name;
-      let actualName = "";
+      let actualName;
 
       // Convert bastion/fortress to structure_1 / structure_2
       if (split.name === "enter_bastion" || split.name === "enter_fortress") {
@@ -109,8 +109,7 @@ export const RunModal = {
 
   resetRows() {
     document.getElementById("modal-banner-pb").textContent = "";
-    document.querySelector(".modal-chart-container .chart-title").textContent =
-      "CUMULATIVE TIME vs PB";
+    document.querySelector(".modal-chart-container .chart-title").textContent = "CUMULATIVE TIME vs PB";
     document.getElementById("modal-splits-header-vs-pb").textContent = "vs PB";
 
     const columns = document.querySelectorAll(`
@@ -137,66 +136,49 @@ export const RunModal = {
     this.resetRows();
 
     // Banner
-    document.getElementById("modal-banner-world").textContent =
-      runData.world_name;
+    document.getElementById("modal-banner-world").textContent = runData.world_name;
 
     let comparisonLabel;
     if (runData.id === allSplitsData.overall.pb_run_id) {
       document.getElementById("modal-banner-pb").textContent = "PB!";
 
       comparisonLabel = "Last PB";
-      document.getElementById("modal-splits-header-vs-pb").textContent =
-        `vs ${comparisonLabel}`;
-      document.querySelector(
-        ".modal-chart-container .chart-title",
-      ).textContent = `CUMULATIVE TIME vs ${comparisonLabel}`;
+      document.getElementById("modal-splits-header-vs-pb").textContent = `vs ${comparisonLabel}`;
+      document.querySelector(".modal-chart-container .chart-title").textContent =
+        `CUMULATIVE TIME vs ${comparisonLabel}`;
     }
 
     document.getElementById("modal-banner-instance").textContent =
       `${runData.instance} (${runData.mc_version})`;
-    document.getElementById("modal-banner-date").textContent = unixToDate(
-      runData.date,
-    );
-    document.getElementById("modal-banner-igt").textContent =
-      runData.is_completed ? msToTime(runData.final_igt) : "-";
-    document.getElementById("modal-banner-rta").textContent =
-      runData.is_completed ? msToTime(runData.final_rta) : "-";
-    document.getElementById("modal-banner-seed").textContent = runData.seed
-      ? runData.seed
+    document.getElementById("modal-banner-date").textContent = unixToDate(runData.date);
+    document.getElementById("modal-banner-igt").textContent = runData.is_completed
+      ? msToTime(runData.final_igt)
       : "-";
+    document.getElementById("modal-banner-rta").textContent = runData.is_completed
+      ? msToTime(runData.final_rta)
+      : "-";
+    document.getElementById("modal-banner-seed").textContent = runData.seed ? runData.seed : "-";
 
     const splits = formatSplits(runData.timelines);
     const pbSplits = pbData ? formatSplits(pbData.timelines) : [];
-    const allSplits = allSplitsData.splits.filter((split) =>
-      SPLITS_FILTER.has(split.name),
-    );
+    const allSplits = allSplitsData.splits.filter((split) => SPLITS_FILTER.has(split.name));
 
     // Chart
-    const chartRunSplits = splits.flatMap((m) =>
-      SPLITS_FILTER.has(m.name) ? m.igt : [],
-    );
+    const chartRunSplits = splits.flatMap((m) => (SPLITS_FILTER.has(m.name) ? m.igt : []));
     if (runData.is_completed === 1 && runData.final_igt) {
       chartRunSplits.push(runData.final_igt);
     }
 
-    const chartPbSplits = pbSplits.flatMap((m) =>
-      SPLITS_FILTER.has(m.name) ? m.igt : [],
-    );
+    const chartPbSplits = pbSplits.flatMap((m) => (SPLITS_FILTER.has(m.name) ? m.igt : []));
     if (pbData?.final_igt) chartPbSplits.push(pbData.final_igt);
 
-    renderModalChart(
-      chartRunSplits,
-      chartPbSplits,
-      comparisonLabel ? comparisonLabel : "PB Run",
-    );
+    renderModalChart(chartRunSplits, chartPbSplits, comparisonLabel ? comparisonLabel : "PB Run");
 
     // Table
     for (let i = 0; i < splits.length; i++) {
       const split = splits[i];
 
-      const row = document.querySelector(
-        `.modal-splits-row[data-split="${split.name}"]`,
-      );
+      const row = document.querySelector(`.modal-splits-row[data-split="${split.name}"]`);
       if (!row) continue;
 
       // Split before the current one
@@ -233,28 +215,17 @@ export const RunModal = {
 
     // Completion Row
     const endSplit = splits.find((s) => s.name === "enter_end");
-    const completionRow = document.querySelector(
-      `.modal-splits-row[data-split="completion"]`,
-    );
+    const completionRow = document.querySelector(`.modal-splits-row[data-split="completion"]`);
 
     if (runData.is_completed === 1) {
       const completionSegmentMs = runData.final_igt - endSplit.igt;
-      const completionAvgDeltaMs =
-        runData.final_igt - allSplitsData.overall.avg_igt;
-      const completionPbDeltaMs = pbData?.final_igt
-        ? runData.final_igt - pbData.final_igt
-        : null;
+      const completionAvgDeltaMs = runData.final_igt - allSplitsData.overall.avg_igt;
+      const completionPbDeltaMs = pbData?.final_igt ? runData.final_igt - pbData.final_igt : null;
 
-      completionRow.querySelector(".modal-col-igt").textContent = msToTime(
-        runData.final_igt,
-      );
-      completionRow.querySelector(".modal-col-segment").textContent =
-        msToTime(completionSegmentMs);
-      completionRow.querySelector(".modal-col-avg").textContent =
-        formatDelta(completionAvgDeltaMs);
-      completionRow
-        .querySelector(".modal-col-avg")
-        .classList.add(deltaClass(completionAvgDeltaMs));
+      completionRow.querySelector(".modal-col-igt").textContent = msToTime(runData.final_igt);
+      completionRow.querySelector(".modal-col-segment").textContent = msToTime(completionSegmentMs);
+      completionRow.querySelector(".modal-col-avg").textContent = formatDelta(completionAvgDeltaMs);
+      completionRow.querySelector(".modal-col-avg").classList.add(deltaClass(completionAvgDeltaMs));
 
       const completionPbCol = completionRow.querySelector(".modal-col-pb");
       if (completionPbDeltaMs !== null) {

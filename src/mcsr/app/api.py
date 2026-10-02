@@ -60,9 +60,7 @@ def get_run_by_id(run_id: int, conn=Depends(get_db)):
     return run_data
 
 
-@router.get(
-    "/runs/world/{world_name}", responses={404: {"description": "World not found"}}
-)
+@router.get("/runs/world/{world_name}", responses={404: {"description": "World not found"}})
 def get_run_by_world(world_name: str, instance: str, conn=Depends(get_db)):
     """Fetch a single run by world name and instance name."""
     run_data = fetch_run_by_world(world_name, instance, conn)

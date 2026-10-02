@@ -26,8 +26,7 @@ export function renderDropdown(config) {
 
   trigger.addEventListener("click", (e) => {
     e.stopPropagation();
-    dropdown.style.display =
-      dropdown.style.display === "none" ? "block" : "none";
+    dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
   });
 
   document.addEventListener("click", (e) => {

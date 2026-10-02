@@ -37,29 +37,45 @@ dev = [
 ]
 
 [tool.poe.tasks]
-lint = "ruff check ."
-format = { shell = "ruff check --fix . && ruff format ." }
+lint = { shell = "ruff check . && npm run lint" }
+fix = { shell = "ruff check --fix . && npm run lint-fix" }
+format = { shell = "ruff format . && npm run format" }
+format-check = { shell = "ruff format --check . && npm run format-check" }
 typecheck = "pyright"
 
 [tool.poe.tasks.dev]
-shell = """
-    uvicorn mcsr.app.api:app --reload --reload-dir src/mcsr/app &
-    npx browser-sync start --proxy localhost:8000 --files "src/mcsr/static/**/*" --port 5500 --no-notify
-"""
+shell = "uvicorn mcsr.app.api:app --reload --reload-dir src/mcsr/app & npm run dev-frontend"
+
+[tool.ruff.format]
+quote-style = "double"
 
 [tool.ruff]
-line-length = 88
+line-length = 104
 target-version = "py314"
 
 [tool.ruff.lint]
 select = [
-    "E",   
-    "F", 
-    "I",
-    "W",
-    "UP",
+    "A",   # flake8-builtins
+    "B",   # flake8-bugbear
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "PTH", # use pathlib
+    "PIE", # flake8-pie
+    "RUF", # Ruff-specific rules
+    "W",   # pycodestyle warnings
 ]
-ignore = ["E501"]  # line too long
+ignore = [
+    "E501",  # line too long; formatter handles it 
+    "PTH123", # let me use open()
+]
+allowed-confusables = ["❯"]
+
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["mcsr"]

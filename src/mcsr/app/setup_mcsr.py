@@ -31,9 +31,7 @@ def get_instances_dir(config: dict) -> Path | None:
             print("No valid instances directory found in config.")
             saved_dir = ""
 
-        user_input = questionary.text(
-            "Enter the path to your instances directory here:"
-        ).ask()
+        user_input = questionary.text("Enter the path to your instances directory here:").ask()
 
         if user_input is None:
             print("No input provided. Exiting.")
@@ -83,11 +81,7 @@ def check_mods(minecraft_dir: Path) -> bool:
     ]
     mods_dir = minecraft_dir / "mods"
 
-    missing_mods = [
-        mod
-        for mod in required_mods
-        if not any(mods_dir.glob(mod, case_sensitive=False))
-    ]
+    missing_mods = [mod for mod in required_mods if not any(mods_dir.glob(mod, case_sensitive=False))]
 
     if missing_mods:
         print(f"Missing mods: {', '.join(missing_mods)}")
@@ -130,9 +124,7 @@ def setup() -> None:
 
         minecraft_dir = get_minecraft_dir(selected)
         if minecraft_dir is None:
-            print(
-                "Couldn't find minecraft folder. Make sure you've opened the instance at least once."
-            )
+            print("Couldn't find minecraft folder. Make sure you've opened the instance at least once.")
             return
 
         mod_status = check_mods(minecraft_dir)

@@ -44,12 +44,7 @@ const ACTIVITY_HIGHLIGHT_PLUGIN = {
 
     ctx.save();
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(
-      left,
-      chartArea.top,
-      colWidth,
-      chartArea.bottom - chartArea.top,
-    );
+    ctx.fillRect(left, chartArea.top, colWidth, chartArea.bottom - chartArea.top);
     ctx.restore();
   },
 };
@@ -83,14 +78,8 @@ function createVerticalGradient(context, colorStops, heightFactor = 0.9) {
     return null;
   }
 
-  const gradientHeight =
-    chartArea.top + (chartArea.bottom - chartArea.top) * heightFactor;
-  const gradient = ctx.createLinearGradient(
-    0,
-    chartArea.top,
-    0,
-    gradientHeight,
-  );
+  const gradientHeight = chartArea.top + (chartArea.bottom - chartArea.top) * heightFactor;
+  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, gradientHeight);
 
   for (const [offset, color] of colorStops) {
     gradient.addColorStop(offset, color);
@@ -153,8 +142,7 @@ function getThemeColors() {
   return {
     primary: style.getPropertyValue("--chart-1").trim() || "#3bd16f",
     muted: style.getPropertyValue("--chart-3").trim() || "#1e2e1e",
-    border:
-      style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
+    border: style.getPropertyValue("--border").trim() || "rgba(90, 158, 47, 0.18)",
     primaryFG: style.getPropertyValue("--foreground").trim() || "#d4e8c2",
     mutedFG: style.getPropertyValue("--muted-foreground").trim() || "#6a8a5a",
     popover: style.getPropertyValue("--popover").trim() || "#111911",
@@ -238,9 +226,7 @@ export function renderPerformanceChart(runs) {
   // 5 completed runs required
   const latest5Runs = runs.slice(0, 5);
   if (latest5Runs.length === 5) {
-    const avgMs = Math.round(
-      latest5Runs.reduce((sum, run) => sum + run.final_igt, 0) / 5,
-    );
+    const avgMs = Math.round(latest5Runs.reduce((sum, run) => sum + run.final_igt, 0) / 5);
     if (ao5Element) ao5Element.textContent = msToTime(avgMs).split(".")[0];
   } else if (ao5Element) {
     ao5Element.textContent = "-";
@@ -273,8 +259,7 @@ export function renderPerformanceChart(runs) {
       pointBackgroundColor: colors.primary,
       tension: 0.2,
       fill: true,
-      backgroundColor: (context) =>
-        createVerticalGradient(context, greenGradient),
+      backgroundColor: (context) => createVerticalGradient(context, greenGradient),
     },
   ];
 
@@ -328,8 +313,7 @@ export function renderModalChart(runSplits, pbSplits, comparisonLabel) {
       pointBackgroundColor: colors.primary,
       tension: 0.2,
       fill: true,
-      backgroundColor: (context) =>
-        createVerticalGradient(context, greenGradient),
+      backgroundColor: (context) => createVerticalGradient(context, greenGradient),
     },
     {
       label: comparisonLabel,
@@ -415,11 +399,9 @@ export function renderMonthlyActivity(data) {
 
       // Custom text colors per legend label
       generateLabels: (chart) => {
-        const labels =
-          Chart.defaults.plugins.legend.labels.generateLabels(chart);
+        const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
         return labels.map((item) => {
-          item.fontColor =
-            item.datasetIndex === 1 ? colors.primaryFG : colors.mutedFG;
+          item.fontColor = item.datasetIndex === 1 ? colors.primaryFG : colors.mutedFG;
           return item;
         });
       },

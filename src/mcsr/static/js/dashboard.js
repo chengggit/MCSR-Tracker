@@ -18,13 +18,11 @@ export function renderCards(stats) {
   pb.querySelector(".card-sub").textContent = pbSub;
 
   const improvementDelta = stats.first_completed_igt - stats.pb_igt;
-  improvement.querySelector(".card-value").textContent =
-    `-${msToTime(improvementDelta)}`;
+  improvement.querySelector(".card-value").textContent = `-${msToTime(improvementDelta)}`;
 
   const finishRate = stats.finish_rate ? stats.finish_rate : 0;
   totalRuns.querySelector(".card-value").textContent = stats.total_runs;
-  totalRuns.querySelector(".card-sub").textContent =
-    `${finishRate}% finish rate`;
+  totalRuns.querySelector(".card-sub").textContent = `${finishRate}% finish rate`;
 
   resets.querySelector(".card-value").textContent = stats.resets;
 }
@@ -41,12 +39,8 @@ export function renderRecentRuns(runs) {
       day: "numeric",
     }),
   );
-  const igts = runs.map((r) =>
-    r.is_completed === 1 ? msToTime(r.final_igt) : "-",
-  );
-  const rtas = runs.map((r) =>
-    r.is_completed === 1 ? msToTime(r.final_rta) : "-",
-  );
+  const igts = runs.map((r) => (r.is_completed === 1 ? msToTime(r.final_igt) : "-"));
+  const rtas = runs.map((r) => (r.is_completed === 1 ? msToTime(r.final_rta) : "-"));
 
   renderTable({
     container,
@@ -70,24 +64,19 @@ export function renderSplitsStats(stats) {
   }
 
   for (const split of stats.splits) {
-    const row = document.querySelector(
-      `.split-row[data-split="${split.name}"]`,
-    );
+    const row = document.querySelector(`.split-row[data-split="${split.name}"]`);
     if (!row) continue;
 
     row.querySelector(".split-avg").textContent = msToTime(split.avg_igt);
     row.querySelector(".split-best").textContent = msToTime(split.best_igt);
   }
-  const completionRow = document.querySelector(
-    `.split-row[data-split="completion"]`,
-  );
+  const completionRow = document.querySelector(`.split-row[data-split="completion"]`);
 
   completionRow.querySelector(".split-avg").textContent = stats.overall.best_igt
     ? msToTime(stats.overall.avg_igt)
     : "";
 
-  completionRow.querySelector(".split-best").textContent = stats.overall
-    .best_igt
+  completionRow.querySelector(".split-best").textContent = stats.overall.best_igt
     ? msToTime(stats.overall.best_igt)
     : "";
 }

@@ -26,9 +26,7 @@ def get_latest_release() -> tuple[str, dict, dict]:
 
             whl_file = next(asset for asset in assets if asset["name"].endswith(".whl"))
 
-            checksum_file = next(
-                asset for asset in assets if asset["name"] == "checksums.sha256"
-            )
+            checksum_file = next(asset for asset in assets if asset["name"] == "checksums.sha256")
         return data["tag_name"], whl_file, checksum_file
 
     except HTTPError as e:
