@@ -83,18 +83,23 @@ def get_minecraft_dir(instance: Instance) -> Path | None:
 def check_mods(minecraft_dir: Path) -> bool:
     print(f"{CYAN}Checking mods..{RESET}")
 
-    required_mods = [
-        "atum-*.jar",
-        "hermes-*.jar",
-        "hermes-core-*.jar",
-        "speedrunigt-*.jar",
-    ]
+    required_mods = {
+        "atum-*.jar": "Atum",
+        "hermes-*.jar": "Hermes",
+        "hermes-core-*.jar": "Hermes Core",
+        "speedrunigt-*.jar": "SpeedrunIGT",
+    }
     mods_dir = minecraft_dir / "mods"
 
-    missing_mods = [mod for mod in required_mods if not any(mods_dir.glob(mod, case_sensitive=False))]
-
+    missing_mods = [
+        name
+        for pattern, name in required_mods.items()
+        if not any(mods_dir.glob(pattern, case_sensitive=False))
+    ]
     if missing_mods:
-        print(f"{RED}Missing mods: {', '.join(missing_mods)}{RESET}")
+        print(f"{RED}Missing mods:{RESET}")
+        for mod in missing_mods:
+            print(f"{RED}  - {mod}{RESET}")
         return False
 
     check_hermes = minecraft_dir / "hermes" / "state.json"
