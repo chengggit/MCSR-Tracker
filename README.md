@@ -23,15 +23,15 @@ A local tracker for Minecraft Speedrunning with a web dashboard that runs entire
   - Hermes
   - Hermes Core
 
-Please refer to [Minecraft speedrunning public resources](https://www.minecraftspeedrunning.com/public-resources/tools-and-resources) to download the mods.
+Please refer to the [Minecraft Speedrunning public resources](https://www.minecraftspeedrunning.com/public-resources/tools-and-resources) to download the required mods.
 
 ### Automatic Installation
 
-You can inspect the install script [here](./install.py).
+You can inspect the [install script](./install.py) before running it.
 
 #### Linux
 
-Default installation path: `~/.local/share/mcsr-tracker`
+Default installation path: `$XDG_DATA_HOME/mcsr-tracker` (defaults to `~/.local/share/mcsr-tracker`)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chengggit/MCSR-Tracker/main/install.py | python
@@ -49,7 +49,7 @@ Follow the on-screen instructions after installation to make `mcsr` a global com
 
 ### Manual Installation
 
-1. Download `mcsr_tracker-<version>-py3-none-any.whl` from the [latest release](../../releases/latest)
+1. Download `mcsr_tracker-<version>-py3-none-any.whl` from the [latest release](../../releases/latest).
 2. Follow the commands below to create a Python virtual environment and install the tracker.
 
 #### Linux
@@ -175,7 +175,9 @@ uv run poe typecheck      # Run type checking
 ### API
 
 The API is available at: <http://127.0.0.1:8000/api>
+
 Interactive API documentation with Swagger UI: <http://127.0.0.1:8000/docs>
+
 Alternative API documentation with ReDoc: <http://127.0.0.1:8000/redoc>
 
 ## License
