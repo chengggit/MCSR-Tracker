@@ -352,8 +352,10 @@ def main() -> None:
 
         Restart your terminal after updating PATH.
 
-        Then type:
-            "mcsr --help" to get started.{RESET}""")
+        Then run:
+            "mcsr setup" to configure your Minecraft instances for tracking.
+            "mcsr --help" to see all available commands.{RESET}"""
+        )
     else:
         create_symlink(mcsr_bin)
         bin_dir = Path.home() / ".local" / "bin"
@@ -365,7 +367,9 @@ configuration file to make "mcsr" a global command:
 
     export PATH="$HOME/.local/bin:$PATH"{RESET}""")
 
-        print(f'{GREEN}Type "mcsr --help" to get started.{RESET}\n')
+        print(f"""{GREEN}
+            Run "mcsr setup" to configure your Minecraft instances for tracking.
+            Run "mcsr --help" to see all available commands.{RESET}\n""")
 
 
 if __name__ == "__main__":
