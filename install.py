@@ -17,8 +17,9 @@ API_URL = "https://api.github.com/repos/chengggit/MCSR-Tracker/releases/latest"
 # window
 if os.name == "nt":
     DEFAULT_INSTALL_DIR = Path(os.environ["LOCALAPPDATA"]) / "mcsr-tracker"
-else:  # unix
-    DEFAULT_INSTALL_DIR = Path.home() / ".local" / "share" / "mcsr-tracker"
+else:  # linux
+    xdg_data_home = os.environ.get("XDG_DATA_HOME", "~/.local/share")
+    DEFAULT_INSTALL_DIR = Path(xdg_data_home).expanduser() / "mcsr-tracker"
 
 
 def check_python_version() -> None:
@@ -355,7 +356,16 @@ def main() -> None:
             "mcsr --help" to get started.{RESET}""")
     else:
         create_symlink(mcsr_bin)
-        print(f'{CYAN}Type "mcsr --help" to get started.{RESET}\n')
+        bin_dir = Path.home() / ".local" / "bin"
+
+        if str(bin_dir) not in os.environ["PATH"].split(os.pathsep):
+            print(f"""{CYAN}
+"~/.local/bin" is not in your PATH. Add the following line to your shell
+configuration file to make "mcsr" a global command:
+
+    export PATH="$HOME/.local/bin:$PATH"{RESET}""")
+
+        print(f'{GREEN}Type "mcsr --help" to get started.{RESET}\n')
 
 
 if __name__ == "__main__":
