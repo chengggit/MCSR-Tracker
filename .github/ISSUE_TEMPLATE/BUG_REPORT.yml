@@ -1,0 +1,69 @@
+name: Bug Report
+description: Create a new issue for a bug report.
+title: "[BUG] - <title>"
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: |
+        Please provide a brief description of the issue you are facing.
+      placeholder: A short description of the problem
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: Please describe the steps needed to reproduce the problem.
+      placeholder: |
+        1. Start the tracker with...
+        2. Start a Minecraft instance...
+        3. ...
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      description: Please provide the relevant system and software information.
+      placeholder: |
+        - OS: Fedora 44
+        - Python: 3.14.x
+        - MCSR Tracker: 1.0.0
+        - Minecraft: 1.16.1
+        - Loader: Fabric
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs"
+      description: |
+        Please attach the relevant `.log` file to this issue.
+
+        Logs are located in the `logs/` directory inside your MCSR Tracker data directory.
+
+        Default locations:
+        - Linux: `$XDG_DATA_HOME/mcsr-tracker/logs/`
+          (defaults to `~/.local/share/mcsr-tracker/logs/`)
+        - Windows: `%LOCALAPPDATA%\mcsr-tracker\logs\`
+
+        If you chose a custom installation path, look for the `logs/` directory there.
+      placeholder: Drag and drop the relevant .log file here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: "Additional Context"
+      description: Please provide any additional context or screenshots that may help explain the problem.
+    validations:
+      required: false
