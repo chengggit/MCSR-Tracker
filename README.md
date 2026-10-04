@@ -83,7 +83,7 @@ mcsr setup
 ```powershell
 python -m venv venv
 venv\Scripts\activate
-python -m pip install C:\path\to\mcsr_tracker-<version>-py3-none-any.whl
+pip install C:\path\to\mcsr_tracker-<version>-py3-none-any.whl
 ```
 
 After installation, run:

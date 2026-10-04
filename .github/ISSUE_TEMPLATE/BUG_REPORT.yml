@@ -37,7 +37,6 @@ body:
         - Python: 3.14.x
         - MCSR Tracker: 1.0.0
         - Minecraft: 1.16.1
-        - Loader: Fabric
     validations:
       required: true
 
