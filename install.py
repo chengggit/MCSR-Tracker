@@ -159,12 +159,12 @@ def draw_menu(title: str, options: list[str], selected: int) -> int:
     sys.stdout.write(f"\n  {BOLD}{title}{RESET}\n\n")
     lines += 3  # newline + title + blank
     for i, option in enumerate(options):
-        prefix = f"{GREEN}❯ {RESET}" if i == selected else "  "
+        prefix = f"{GREEN}> {RESET}" if i == selected else "  "
         color = BOLD if i == selected else ""
         reset = RESET if i == selected else ""
         sys.stdout.write(f"  {prefix}{color}{option}{reset}\n")
         lines += 1
-    sys.stdout.write(f"\n  {GRAY}↑/↓ Navigate    Enter Select{RESET}\n")
+    sys.stdout.write(f"\n  {GRAY}Up/Down Navigate    Enter Select{RESET}\n")
     lines += 2  # blank + hint
     sys.stdout.flush()
     return lines
@@ -213,14 +213,54 @@ def get_key() -> str:
         return ""
 
 
+def read_line() -> str:
+    """Read one line of user input from the console.
+
+    On Windows this reads via msvcrt instead of sys.stdin, so it still works
+    when the script is piped into Python (e.g. `curl ... | python`), where
+    stdin is not a TTY and input() would fail with EOFError.
+    """
+    if os.name == "nt":
+        import msvcrt
+
+        chars: list[str] = []
+        while True:
+            ch = msvcrt.getwch()
+
+            if ch in ("\r", "\n"):
+                sys.stdout.write("\n")
+                break
+            if ch == "\x03":  # Ctrl+C
+                raise KeyboardInterrupt
+            if ch == "\x1a":  # Ctrl+Z acts as EOF
+                raise EOFError
+            if ch in ("\x08", "\x7f"):  # Backspace
+                if chars:
+                    chars.pop()
+                    sys.stdout.write("\b \b")
+                    sys.stdout.flush()
+                continue
+            if ch in ("\x00", "\xe0"):  # second half of a function key
+                msvcrt.getwch()
+                continue
+            if ch.isprintable():
+                chars.append(ch)
+                sys.stdout.write(ch)
+                sys.stdout.flush()
+
+        return "".join(chars)
+
+    return input()
+
+
 def select_option(title: str, options: list[str]) -> int:
     """Display a menu and return the index of the chosen option."""
     if get_input_stream() is None:
-        # No terminal to read keypresses from — fall back to the first option.
+        # No terminal to read keypresses from - fall back to the first option.
         print(f"\n  {BOLD}{title}{RESET}\n")
         for i, option in enumerate(options):
             print(f"  {i + 1}) {option}")
-        print(f'\n  {GRAY}No terminal available — choosing "{options[0]}".{RESET}')
+        print(f'\n  {GRAY}No terminal available - choosing "{options[0]}".{RESET}')
         return 0
 
     selected = 0
@@ -265,7 +305,18 @@ def ask_custom_path() -> str | None:
         print()
         return None
 
-    path = input() if stream is sys.stdin else stream.readline()
+    try:
+        # On Windows read_line() reads the console via msvcrt, because
+        # input() would hit EOFError when the script is piped in
+        # (irm ... | python). Elsewhere stream is either sys.stdin (a TTY)
+        # or the /dev/tty fallback for piped stdin.
+        path = read_line() if stream is sys.stdin else stream.readline()
+    except EOFError:
+        # stdin/console closed - treat like an empty answer instead of crashing
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+        return None
+
     path = path.strip()
     return path if path else None
 
@@ -278,15 +329,15 @@ def path_option() -> Path:
     choice = select_option(title, options)
 
     if choice == 0:
-        print(f"\n  Installing to {DEFAULT_INSTALL_DIR} …\n")
+        print(f"\n  Installing to {DEFAULT_INSTALL_DIR} ...\n")
         return DEFAULT_INSTALL_DIR
     elif choice == 1:
         path = ask_custom_path()
         if path:
-            print(f"\n  Installing to {BOLD}{path}{RESET} …\n")
+            print(f"\n  Installing to {BOLD}{path}{RESET} ...\n")
             return Path(path).expanduser()
         else:
-            print(f"\n  {GRAY}No path provided — cancelled.{RESET}\n")
+            print(f"\n  {GRAY}No path provided - cancelled.{RESET}\n")
             sys.exit(0)
     else:
         print(f"\n  {GRAY}Installation cancelled.{RESET}\n")
