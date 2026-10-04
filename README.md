@@ -2,7 +2,9 @@
 
 A local tracker for Minecraft Speedrunning with a web dashboard that runs entirely on your computer.
 
-> **Note:** This tracker is built with Any% Glitchless in mind, and will probably not work with other categories.
+> **Note:** This tracker is built for Any% Glitchless, and will probably not work with other categories.
+
+I built this tracker because I wanted a simple, fully local and offline tracker. It is not meant to replace [PaceMan Tracker](https://paceman.gg/) but to offer a local alternative for those who prefer it.
 
 ## Features
 
@@ -11,6 +13,14 @@ A local tracker for Minecraft Speedrunning with a web dashboard that runs entire
 - Web dashboard for viewing run statistics
 - Run history and split data
 - Save seed when `/seed` is run
+
+### Tracking Behavior
+
+- **World tracking:** Worlds not created by Atum won't be tracked.
+- **Seed:** The world seed is only saved when `/seed` is run. If `/seed` has not been run, the seed cannot be saved because the level data is encrypted.
+- **Cheat detection:** Any splits recorded after cheats are enabled won't be saved.
+- **Structure splits:** Bastion and fortress splits are normalized into Structure 1 / Structure 2 based on which structure is entered first.
+- **Run data:** Runs are recorded automatically while the tracker is running.
 
 ## Installation
 
