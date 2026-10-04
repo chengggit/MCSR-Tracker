@@ -6,6 +6,8 @@ A local tracker for Minecraft Speedrunning with a web dashboard that runs entire
 
 I built this tracker because I wanted a simple, fully local and offline tracker. It is not meant to replace [PaceMan Tracker](https://paceman.gg/) but to offer a local alternative for those who prefer it.
 
+![dashboard](./images/dashboard.png)
+
 ## Features
 
 - Fully local, no account or login required
