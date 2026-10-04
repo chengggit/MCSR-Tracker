@@ -354,8 +354,7 @@ def main() -> None:
 
         Then run:
             "mcsr setup" to configure your Minecraft instances for tracking.
-            "mcsr --help" to see all available commands.{RESET}"""
-        )
+            "mcsr --help" to see all available commands.{RESET}""")
     else:
         create_symlink(mcsr_bin)
         bin_dir = Path.home() / ".local" / "bin"
