@@ -8,6 +8,7 @@ import sys
 import venv
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TextIO
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -118,6 +119,40 @@ def clear_lines(n: int) -> None:
     sys.stdout.flush()
 
 
+_tty_stream: TextIO | None = None
+_tty_checked = False
+
+
+def get_input_stream() -> TextIO | None:
+    """Return the stream keyboard input should be read from, if any.
+
+    When the installer is piped in (curl ... | python), sys.stdin is the pipe
+    rather than the terminal, so read keys from the controlling terminal
+    instead. Returns None when no terminal is available at all.
+    """
+    global _tty_stream, _tty_checked
+
+    if os.name == "nt":
+        # msvcrt reads from the console directly, bypassing stdin.
+        return sys.stdin
+
+    if not _tty_checked:
+        _tty_checked = True
+        if sys.stdin.isatty():
+            _tty_stream = sys.stdin
+        else:
+            try:
+                # newline="\n" matches sys.stdin on POSIX: it disables the
+                # universal-newline decoder, whose pending-CR logic would
+                # swallow a lone "\r" (Enter) until another byte arrives,
+                # making the first Enter appear to do nothing.
+                _tty_stream = open("/dev/tty", newline="\n")
+            except OSError:
+                _tty_stream = None
+
+    return _tty_stream
+
+
 def draw_menu(title: str, options: list[str], selected: int) -> int:
     """Render the menu to the terminal. Returns the number of lines drawn."""
     lines = 0
@@ -154,15 +189,19 @@ def get_key() -> str:
         import termios
         import tty
 
-        fd = sys.stdin.fileno()
+        stream = get_input_stream()
+        if stream is None:
+            raise KeyboardInterrupt
+
+        fd = stream.fileno()
         old = termios.tcgetattr(fd)
         try:
             tty.setraw(fd)
-            ch = sys.stdin.read(1)
-            if ch == "\x03":
+            ch = stream.read(1)
+            if not ch or ch == "\x03":
                 raise KeyboardInterrupt
             if ch == "\x1b":
-                ch += sys.stdin.read(2)
+                ch += stream.read(2)
             if ch == "\x1b[A":
                 return "UP"
             if ch == "\x1b[B":
@@ -176,6 +215,14 @@ def get_key() -> str:
 
 def select_option(title: str, options: list[str]) -> int:
     """Display a menu and return the index of the chosen option."""
+    if get_input_stream() is None:
+        # No terminal to read keypresses from — fall back to the first option.
+        print(f"\n  {BOLD}{title}{RESET}\n")
+        for i, option in enumerate(options):
+            print(f"  {i + 1}) {option}")
+        print(f'\n  {GRAY}No terminal available — choosing "{options[0]}".{RESET}')
+        return 0
+
     selected = 0
 
     # hide cursor
@@ -212,7 +259,14 @@ def ask_custom_path() -> str | None:
     """Prompt the user to type a custom install path. Returns None on empty."""
     sys.stdout.write(f"\n  {CYAN}Enter install path:{RESET} ")
     sys.stdout.flush()
-    path = input().strip()
+
+    stream = get_input_stream()
+    if stream is None:
+        print()
+        return None
+
+    path = input() if stream is sys.stdin else stream.readline()
+    path = path.strip()
     return path if path else None
 
 
