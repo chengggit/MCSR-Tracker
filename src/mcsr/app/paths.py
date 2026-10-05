@@ -19,3 +19,11 @@ def get_log_dir() -> Path:
     log_dir = mcsr_home() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     return log_dir
+
+
+def get_pending_path() -> Path:
+    return mcsr_home() / "pending.json"
+
+
+def get_instance_path(config_data: dict, instance_name: str) -> Path:
+    return Path(config_data["instances"][instance_name])

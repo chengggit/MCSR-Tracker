@@ -1,6 +1,5 @@
 import sqlite3
 import sys
-from pathlib import Path
 
 import click
 import uvicorn
@@ -8,17 +7,13 @@ import uvicorn
 from mcsr.app.config import Instance, load_config
 from mcsr.app.importer import batch_import
 from mcsr.app.logger import logger
-from mcsr.app.paths import get_db_path
+from mcsr.app.paths import get_db_path, get_instance_path
 from mcsr.app.setup_mcsr import setup
 from mcsr.app.uninstaller import uninstaller
 from mcsr.app.updater import updater
-from mcsr.app.watcher import start_watcher
+from mcsr.app.watcher import start_tracker
 
 DB_PATH = get_db_path()
-
-
-def get_instance_path(config_data: dict, instance_name: str) -> Path:
-    return Path(config_data["instances"][instance_name])
 
 
 @click.group()
@@ -58,7 +53,7 @@ def track(instance_name: str, dashboard: bool) -> None:
         sys.exit(1)
 
     try:
-        start_watcher(instance, conn)
+        start_tracker(instance, conn)
     finally:
         logger.info("Shutting down...")
         conn.close()
