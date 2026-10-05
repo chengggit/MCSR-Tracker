@@ -106,6 +106,7 @@ def create_symlink(link_target: Path) -> None:
 
     mcsr_link.symlink_to(link_target)
 
+
 # Main function tying everything together
 def main() -> None:
     """Check the Python version and fetch the latest release from GitHub.
