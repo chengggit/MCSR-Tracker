@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 WORLD_QUEUE = queue.Queue()
 
 
-# read state.json from hermes
 def read_state(state_path: str) -> dict | None:
+    """Read hermes state.json, retrying briefly in case it's mid-write."""
     timeout = 0.3
     deadline = time.monotonic() + timeout
     last_error = None
@@ -39,6 +39,7 @@ def read_state(state_path: str) -> dict | None:
 
 
 def process_queue(instance: Instance, conn: Connection):
+    """Continuously pull world dirs off WORLD_QUEUE and save them to the DB."""
     while True:
         world_dir = WORLD_QUEUE.get()
 
@@ -53,6 +54,8 @@ def process_queue(instance: Instance, conn: Connection):
 
 
 def start_watcher(instance: Instance, conn: Connection):
+    """Watch hermes state.json and queue the previous of the previous world for saving,
+    to prevent saving a world the player may re-enter."""
     hermes_path = instance.instance_path / "hermes" / "state.json"
     directory = hermes_path.parent
     filename = hermes_path.name
@@ -66,6 +69,9 @@ def start_watcher(instance: Instance, conn: Connection):
             self.prev_world_dir = None
 
         def on_modified(self, event):
+            # prev_prev is the only world ever queued: a run is only saved once a
+            # newer transition proves the player moved on. prev may be re-entered,
+            # so it shifts into prev_prev instead of being queued directly.
             if event.is_directory or not str(event.src_path).endswith(filename):
                 return
 
@@ -77,31 +83,25 @@ def start_watcher(instance: Instance, conn: Connection):
 
             # world -> menu/wall or world -> world
             if current_world is None:
-                print(self.prev_prev_world_dir, self.prev_world_dir)
                 if self.prev_prev_world_dir and self.prev_world_dir:
                     WORLD_QUEUE.put(self.prev_prev_world_dir)
                     self.prev_prev_world_dir = self.prev_world_dir
                     self.prev_world_dir = None
-                    print(self.prev_prev_world_dir, self.prev_world_dir)
                 return
 
             # menu/wall -> world
-            print(self.prev_prev_world_dir, self.prev_world_dir)
             if self.prev_world_dir is None:
                 self.prev_world_dir = current_world["path"]
-                print(self.prev_prev_world_dir, self.prev_world_dir)
                 return
 
             # instant reset
             current_world_dir = current_world["path"]
-            print(self.prev_prev_world_dir, self.prev_world_dir)
             if current_world_dir != self.prev_world_dir:
                 if self.prev_prev_world_dir:
                     WORLD_QUEUE.put(self.prev_prev_world_dir)
 
                 self.prev_prev_world_dir = self.prev_world_dir
                 self.prev_world_dir = current_world_dir
-                print(self.prev_prev_world_dir, self.prev_world_dir)
 
     handler = MyHandler()
     observer = Observer()
@@ -111,6 +111,7 @@ def start_watcher(instance: Instance, conn: Connection):
 
 
 def flush_foreign_pending(tracking_instance: str, conn: Connection):
+    """Save a pending run left over from a different instance at startup."""
     pending = load_pending()
     if not pending:
         return
@@ -141,6 +142,7 @@ def flush_foreign_pending(tracking_instance: str, conn: Connection):
 
 
 def start_tracker(instance: Instance, conn: Connection):
+    """Run the watcher until Ctrl+C, saving any unprocessed run to pending.json on exit."""
     flush_foreign_pending(instance.instance_name, conn)
 
     handler, observer = start_watcher(instance, conn)
