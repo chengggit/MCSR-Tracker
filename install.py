@@ -8,12 +8,19 @@ import sys
 import venv
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import TextIO
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 MIN_PYTHON = (3, 14)
 API_URL = "https://api.github.com/repos/chengggit/MCSR-Tracker/releases/latest"
+
+# ANSI escape sequences for terminal styling
+BOLD = "\033[1m"
+RESET = "\033[0m"
+GREEN = "\033[32m"
+CYAN = "\033[36m"
+RED = "\033[31m"
+GRAY = "\033[90m"
 
 # window
 if os.name == "nt":
@@ -100,262 +107,6 @@ def create_symlink(link_target: Path) -> None:
     mcsr_link.symlink_to(link_target)
 
 
-# --- TUI -------------------------------------------------------
-
-# ANSI escape sequences for terminal styling
-BOLD = "\033[1m"
-RESET = "\033[0m"
-GREEN = "\033[32m"
-CYAN = "\033[36m"
-RED = "\033[31m"
-GRAY = "\033[90m"
-
-
-def clear_lines(n: int) -> None:
-    """Move cursor up n lines and clear them."""
-    for _ in range(n):
-        sys.stdout.write("\033[A\033[2K")
-    sys.stdout.write("\r")
-    sys.stdout.flush()
-
-
-_tty_stream: TextIO | None = None
-_tty_checked = False
-
-
-def get_input_stream() -> TextIO | None:
-    """Return the stream keyboard input should be read from, if any.
-
-    When the installer is piped in (curl ... | python), sys.stdin is the pipe
-    rather than the terminal, so read keys from the controlling terminal
-    instead. Returns None when no terminal is available at all.
-    """
-    global _tty_stream, _tty_checked
-
-    if os.name == "nt":
-        # msvcrt reads from the console directly, bypassing stdin.
-        return sys.stdin
-
-    if not _tty_checked:
-        _tty_checked = True
-        if sys.stdin.isatty():
-            _tty_stream = sys.stdin
-        else:
-            try:
-                # newline="\n" matches sys.stdin on POSIX: it disables the
-                # universal-newline decoder, whose pending-CR logic would
-                # swallow a lone "\r" (Enter) until another byte arrives,
-                # making the first Enter appear to do nothing.
-                _tty_stream = open("/dev/tty", newline="\n")
-            except OSError:
-                _tty_stream = None
-
-    return _tty_stream
-
-
-def draw_menu(title: str, options: list[str], selected: int) -> int:
-    """Render the menu to the terminal. Returns the number of lines drawn."""
-    lines = 0
-    sys.stdout.write(f"\n  {BOLD}{title}{RESET}\n\n")
-    lines += 3  # newline + title + blank
-    for i, option in enumerate(options):
-        prefix = f"{GREEN}> {RESET}" if i == selected else "  "
-        color = BOLD if i == selected else ""
-        reset = RESET if i == selected else ""
-        sys.stdout.write(f"  {prefix}{color}{option}{reset}\n")
-        lines += 1
-    sys.stdout.write(f"\n  {GRAY}Up/Down Navigate    Enter Select{RESET}\n")
-    lines += 2  # blank + hint
-    sys.stdout.flush()
-    return lines
-
-
-def get_key() -> str:
-    """Read a single keypress, cross-platform."""
-    if os.name == "nt":
-        import msvcrt
-
-        ch = msvcrt.getwch()
-        if ch in ("\x00", "\xe0"):
-            ch = msvcrt.getwch()
-            if ch == "H":
-                return "UP"
-            if ch == "P":
-                return "DOWN"
-        if ch in ("\r", "\n"):
-            return "ENTER"
-        return ""
-    else:
-        import termios
-        import tty
-
-        stream = get_input_stream()
-        if stream is None:
-            raise KeyboardInterrupt
-
-        fd = stream.fileno()
-        old = termios.tcgetattr(fd)
-        try:
-            tty.setraw(fd)
-            ch = stream.read(1)
-            if not ch or ch == "\x03":
-                raise KeyboardInterrupt
-            if ch == "\x1b":
-                ch += stream.read(2)
-            if ch == "\x1b[A":
-                return "UP"
-            if ch == "\x1b[B":
-                return "DOWN"
-            if ch in ("\r", "\n"):
-                return "ENTER"
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old)
-        return ""
-
-
-def read_line() -> str:
-    """Read one line of user input from the console.
-
-    On Windows this reads via msvcrt instead of sys.stdin, so it still works
-    when the script is piped into Python (e.g. `curl ... | python`), where
-    stdin is not a TTY and input() would fail with EOFError.
-    """
-    if os.name == "nt":
-        import msvcrt
-
-        chars: list[str] = []
-        while True:
-            ch = msvcrt.getwch()
-
-            if ch in ("\r", "\n"):
-                sys.stdout.write("\n")
-                break
-            if ch == "\x03":  # Ctrl+C
-                raise KeyboardInterrupt
-            if ch == "\x1a":  # Ctrl+Z acts as EOF
-                raise EOFError
-            if ch in ("\x08", "\x7f"):  # Backspace
-                if chars:
-                    chars.pop()
-                    sys.stdout.write("\b \b")
-                    sys.stdout.flush()
-                continue
-            if ch in ("\x00", "\xe0"):  # second half of a function key
-                msvcrt.getwch()
-                continue
-            if ch.isprintable():
-                chars.append(ch)
-                sys.stdout.write(ch)
-                sys.stdout.flush()
-
-        return "".join(chars)
-
-    return input()
-
-
-def select_option(title: str, options: list[str]) -> int:
-    """Display a menu and return the index of the chosen option."""
-    if get_input_stream() is None:
-        # No terminal to read keypresses from - fall back to the first option.
-        print(f"\n  {BOLD}{title}{RESET}\n")
-        for i, option in enumerate(options):
-            print(f"  {i + 1}) {option}")
-        print(f'\n  {GRAY}No terminal available - choosing "{options[0]}".{RESET}')
-        return 0
-
-    selected = 0
-
-    # hide cursor
-    sys.stdout.write("\033[?25l")
-    sys.stdout.flush()
-
-    try:
-        menu_height = draw_menu(title, options, selected)
-
-        while True:
-            key = get_key()
-
-            if key == "UP":
-                selected = (selected - 1) % len(options)
-            elif key == "DOWN":
-                selected = (selected + 1) % len(options)
-            elif key == "ENTER":
-                break
-            else:
-                continue
-
-            clear_lines(menu_height)
-            menu_height = draw_menu(title, options, selected)
-
-        return selected
-
-    finally:
-        # Always show cursor again, even if Ctrl+C occurs
-        sys.stdout.write("\033[?25h")
-        sys.stdout.flush()
-
-
-def ask_custom_path() -> str | None:
-    """Prompt the user to type a custom install path. Returns None on empty."""
-    sys.stdout.write(f"\n  {CYAN}Enter install path:{RESET} ")
-    sys.stdout.flush()
-
-    stream = get_input_stream()
-    if stream is None:
-        print()
-        return None
-
-    try:
-        # On Windows read_line() reads the console via msvcrt, because
-        # input() would hit EOFError when the script is piped in
-        # (irm ... | python). Elsewhere stream is either sys.stdin (a TTY)
-        # or the /dev/tty fallback for piped stdin.
-        path = read_line() if stream is sys.stdin else stream.readline()
-    except EOFError:
-        # stdin/console closed - treat like an empty answer instead of crashing
-        sys.stdout.write("\n")
-        sys.stdout.flush()
-        return None
-
-    path = path.strip()
-    return path if path else None
-
-
-# Handle TUI interaction and return the selected installation directory.
-def path_option() -> Path:
-    title = "Where would you like to install MCSR Tracker?"
-    options = ["Default", "Custom", "Cancel"]
-
-    choice = select_option(title, options)
-
-    if choice == 0:
-        print(f"\n  Installing to {DEFAULT_INSTALL_DIR} ...\n")
-        return DEFAULT_INSTALL_DIR
-    elif choice == 1:
-        path = ask_custom_path()
-        if path:
-            print(f"\n  Installing to {BOLD}{path}{RESET} ...\n")
-            return Path(path).expanduser()
-        else:
-            print(f"\n  {GRAY}No path provided - cancelled.{RESET}\n")
-            sys.exit(0)
-    else:
-        print(f"\n  {GRAY}Installation cancelled.{RESET}\n")
-        sys.exit(0)
-
-
-def confirm(title: str) -> bool:
-    options = ["Yes", "No", "Cancel"]
-    choice = select_option(title, options)
-
-    if choice == 0:
-        return True
-    elif choice == 1:
-        return False
-    else:
-        sys.exit(0)
-
-
 # Main function tying everything together
 def main() -> None:
     """Check the Python version and fetch the latest release from GitHub.
@@ -368,7 +119,7 @@ def main() -> None:
 
     check_python_version()
 
-    install_dir = path_option()
+    install_dir = DEFAULT_INSTALL_DIR
 
     print(f"{CYAN}Fetching latest release...{RESET}")
     _, whl_file, checksum_file = get_latest_release()
@@ -406,12 +157,8 @@ def main() -> None:
             venv_python = venv_dir / "bin" / "python"
             mcsr_bin = venv_dir / "bin" / "mcsr"
 
-        if mcsr_bin.exists():
-            reinstall = confirm("Found an existing installation of MCSR Tracker. Reinstall?")
-            if not reinstall:
-                return
-
-            print(f"{CYAN}Reinstalling MCSR Tracker...{RESET}\n")
+        if venv_python.exists():
+            print(f"{CYAN}Existing MCSR Tracker installation found. Updating...{RESET}\n")
             subprocess.run(
                 [
                     str(venv_python),
@@ -477,9 +224,4 @@ configuration file to make "mcsr" a global command:
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.stdout.write("\n")
-        sys.stdout.flush()
-        sys.exit(0)
+    main()
